@@ -18,8 +18,7 @@ export default function OnboardingScreen() {
 
   useEffect(() => {
     (async () => {
-      const { data: pub } = await supabase
-        .from("organizations").select("id, code, name, full_name").order("code");
+      const { data: pub } = await supabase.rpc("get_organizations_for_onboarding");
       if (pub) setOrgs(pub as Org[]);
 
       const { count } = await supabase
