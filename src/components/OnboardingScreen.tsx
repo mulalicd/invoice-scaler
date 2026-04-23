@@ -75,10 +75,10 @@ export default function OnboardingScreen() {
                   <Button
                     className="w-full"
                     disabled={loading}
-                    onClick={() => claim(org.id, hasAnyAdmin === false)}
+                    onClick={() => claim(org.id)}
                   >
                     {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    {hasAnyAdmin === false ? "Pristupi kao Admin" : "Zatraži pristup"}
+                    Pristupi
                   </Button>
                 </CardContent>
               </Card>
