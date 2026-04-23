@@ -374,9 +374,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_organizations_for_onboarding: {
+        Args: never
+        Returns: {
+          code: string
+          full_name: string
+          id: string
+          name: string
+        }[]
+      }
       get_user_organization: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      has_role_in_org: {
+        Args: {
+          _org_id: string
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
