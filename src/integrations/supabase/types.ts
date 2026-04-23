@@ -374,6 +374,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_organization: { Args: { _org_id: string }; Returns: string }
       get_organizations_for_onboarding: {
         Args: never
         Returns: {
