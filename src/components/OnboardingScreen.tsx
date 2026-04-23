@@ -27,21 +27,14 @@ export default function OnboardingScreen() {
     })();
   }, []);
 
-  const claim = async (orgId: string, asAdmin: boolean) => {
+  const claim = async (orgId: string) => {
     if (!user) return;
     setLoading(true);
-    const { error: pErr } = await supabase
-      .from("profiles").update({ organization_id: orgId }).eq("id", user.id);
-    if (pErr) { setLoading(false); return toast.error(pErr.message); }
-
-    const role = asAdmin ? "admin" : "accountant";
-    const { error: rErr } = await supabase
-      .from("user_roles").insert({ user_id: user.id, role: role as any, organization_id: orgId });
-    if (rErr) { setLoading(false); return toast.error(rErr.message); }
-
-    toast.success("Pristup dodijeljen!");
-    await refresh();
+    const { data, error } = await supabase.rpc("claim_organization", { _org_id: orgId });
     setLoading(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Pristup dodijeljen kao ${data === "admin" ? "Administrator" : "Računovodstvo"}`);
+    await refresh();
     window.location.reload();
   };
 
