@@ -18,12 +18,9 @@ export default function OnboardingScreen() {
 
   useEffect(() => {
     (async () => {
-      // anonymous-style check: try to read orgs (will work because select policy uses get_user_organization which returns null → no rows). 
-      // We need a function that lets a not-yet-assigned user see the list. Use a quick RPC fallback — we'll instead fetch via the public endpoint.
-      const { data: orgsData } = await supabase.rpc("list_orgs_for_onboarding").single().then(() => ({ data: null as any })).catch(() => ({ data: null as any }));
-      // Simpler: just try select, RLS might block — fallback to seeded knowledge.
-      const { data: pub } = await supabase.from("organizations").select("id, code, name, full_name");
-      if (pub && pub.length) setOrgs(pub as any);
+      const { data: pub } = await supabase
+        .from("organizations").select("id, code, name, full_name").order("code");
+      if (pub) setOrgs(pub as Org[]);
 
       const { count } = await supabase
         .from("user_roles").select("*", { count: "exact", head: true }).eq("role", "admin");
