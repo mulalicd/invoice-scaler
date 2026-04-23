@@ -18,8 +18,7 @@ export default function OnboardingScreen() {
 
   useEffect(() => {
     (async () => {
-      const { data: pub } = await supabase
-        .from("organizations").select("id, code, name, full_name").order("code");
+      const { data: pub } = await supabase.rpc("get_organizations_for_onboarding");
       if (pub) setOrgs(pub as Org[]);
 
       const { count } = await supabase
@@ -28,21 +27,14 @@ export default function OnboardingScreen() {
     })();
   }, []);
 
-  const claim = async (orgId: string, asAdmin: boolean) => {
+  const claim = async (orgId: string) => {
     if (!user) return;
     setLoading(true);
-    const { error: pErr } = await supabase
-      .from("profiles").update({ organization_id: orgId }).eq("id", user.id);
-    if (pErr) { setLoading(false); return toast.error(pErr.message); }
-
-    const role = asAdmin ? "admin" : "accountant";
-    const { error: rErr } = await supabase
-      .from("user_roles").insert({ user_id: user.id, role: role as any, organization_id: orgId });
-    if (rErr) { setLoading(false); return toast.error(rErr.message); }
-
-    toast.success("Pristup dodijeljen!");
-    await refresh();
+    const { data, error } = await supabase.rpc("claim_organization", { _org_id: orgId });
     setLoading(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Pristup dodijeljen kao ${data === "admin" ? "Administrator" : "Računovodstvo"}`);
+    await refresh();
     window.location.reload();
   };
 
@@ -83,10 +75,10 @@ export default function OnboardingScreen() {
                   <Button
                     className="w-full"
                     disabled={loading}
-                    onClick={() => claim(org.id, hasAnyAdmin === false)}
+                    onClick={() => claim(org.id)}
                   >
                     {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    {hasAnyAdmin === false ? "Pristupi kao Admin" : "Zatraži pristup"}
+                    Pristupi
                   </Button>
                 </CardContent>
               </Card>
