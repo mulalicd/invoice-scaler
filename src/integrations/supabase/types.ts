@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          ip_address: string | null
+          organization_id: string | null
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          ip_address?: string | null
+          organization_id?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          ip_address?: string | null
+          organization_id?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           address: string | null
@@ -301,6 +340,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_organization_id: string | null
           created_at: string
           email: string
           first_name: string | null
@@ -310,6 +350,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          active_organization_id?: string | null
           created_at?: string
           email: string
           first_name?: string | null
@@ -319,6 +360,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          active_organization_id?: string | null
           created_at?: string
           email?: string
           first_name?: string | null
@@ -328,6 +370,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_active_organization_id_fkey"
+            columns: ["active_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_organization_id_fkey"
             columns: ["organization_id"]
@@ -374,7 +423,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bulk_import_clients: {
+        Args: { _clients: Json; _org_id: string }
+        Returns: {
+          inserted: number
+          skipped: number
+        }[]
+      }
+      bulk_import_invoices: {
+        Args: { _invoices: Json; _org_id: string }
+        Returns: {
+          inserted: number
+          missing_clients: number
+          skipped: number
+        }[]
+      }
       claim_organization: { Args: { _org_id: string }; Returns: string }
+      get_active_org: { Args: { _user_id: string }; Returns: string }
       get_organizations_for_onboarding: {
         Args: never
         Returns: {
@@ -400,6 +465,28 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_role_or_super: {
+        Args: {
+          _org_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_member_of_org: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_superadmin: { Args: { _user_id: string }; Returns: boolean }
+      log_action: {
+        Args: {
+          _action: string
+          _details: Json
+          _entity_id: string
+          _entity_type: string
+        }
+        Returns: undefined
+      }
       next_invoice_number: {
         Args: { _org_id: string; _year: number }
         Returns: {
@@ -407,6 +494,14 @@ export type Database = {
           invoice_seq: number
           invoice_year: number
         }[]
+      }
+      switch_active_organization: {
+        Args: { _org_id: string }
+        Returns: undefined
+      }
+      wipe_org_data: {
+        Args: { _confirm: string; _org_id: string }
+        Returns: Json
       }
     }
     Enums: {
