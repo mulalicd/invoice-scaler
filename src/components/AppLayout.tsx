@@ -3,19 +3,27 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LayoutDashboard, FileText, Users, Settings, LogOut, Building2, Menu, X } from "lucide-react";
+import { LayoutDashboard, FileText, Users, Settings, LogOut, Building2, Menu, X, Shield, Check } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-
-const navigation = [
-  { to: "/", label: "Pregled", icon: LayoutDashboard, end: true },
-  { to: "/invoices", label: "Fakture", icon: FileText },
-  { to: "/clients", label: "Klijenti", icon: Users },
-  { to: "/settings", label: "Postavke", icon: Settings },
-];
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
-  const { profile, organization, signOut } = useAuth();
+  const { profile, organization, organizations, isAdmin, isSuperadmin, switchOrg, signOut } = useAuth();
+
+  const navigation = [
+    { to: "/", label: "Pregled", icon: LayoutDashboard, end: true },
+    { to: "/invoices", label: "Fakture", icon: FileText },
+    { to: "/clients", label: "Klijenti", icon: Users },
+    { to: "/settings", label: "Postavke", icon: Settings },
+    ...(isAdmin ? [{ to: "/admin", label: "Administracija", icon: Shield }] : []),
+  ];
+
+  const handleSwitch = async (id: string) => {
+    try { await switchOrg(id); toast.success("Aktivna ustanova promijenjena"); window.location.reload(); }
+    catch (e: any) { toast.error(e.message); }
+  };
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -63,12 +71,29 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
           <div className="p-3 border-t border-sidebar-border space-y-3">
             {organization && (
-              <div className="px-3 py-2 rounded-lg bg-sidebar-accent/40">
-                <div className="flex items-center gap-2 text-xs text-sidebar-foreground/60 mb-1">
-                  <Building2 className="w-3 h-3" /> Organizacija
-                </div>
-                <div className="text-sm font-medium truncate">{organization.full_name}</div>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="w-full px-3 py-2 rounded-lg bg-sidebar-accent/40 hover:bg-sidebar-accent text-left transition-smooth">
+                    <div className="flex items-center gap-2 text-xs text-sidebar-foreground/60 mb-1">
+                      <Building2 className="w-3 h-3" /> Aktivna ustanova {isSuperadmin && <span className="ml-auto text-primary">SUPER</span>}
+                    </div>
+                    <div className="text-sm font-medium truncate">{organization.code} — {organization.name}</div>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64">
+                  <DropdownMenuLabel>Prebaci ustanovu</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {organizations.map((o) => (
+                    <DropdownMenuItem key={o.id} onClick={() => handleSwitch(o.id)}>
+                      <div className="flex-1">
+                        <div className="font-medium">{o.code}</div>
+                        <div className="text-xs text-muted-foreground truncate">{o.full_name}</div>
+                      </div>
+                      {o.id === organization.id && <Check className="w-4 h-4" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             <div className="flex items-center gap-3 px-3 py-2">
               <Avatar className="w-8 h-8">
