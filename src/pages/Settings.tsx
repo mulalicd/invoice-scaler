@@ -186,6 +186,29 @@ export default function Settings() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="account" className="mt-4 space-y-4">
+          <Card className="border-border/60 max-w-lg">
+            <CardHeader>
+              <CardTitle className="text-base">Promjena lozinke</CardTitle>
+              <CardDescription>Postavite novu lozinku za svoj račun ({profile?.email})</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Nova lozinka</Label>
+                <Input type="password" value={pwd} onChange={e => setPwd(e.target.value)} placeholder="min. 8 karaktera" />
+              </div>
+              <div className="space-y-2">
+                <Label>Potvrdi novu lozinku</Label>
+                <Input type="password" value={pwd2} onChange={e => setPwd2(e.target.value)} />
+              </div>
+              <Button onClick={changePassword} disabled={pwdSaving}>
+                {pwdSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Promijeni lozinku
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
