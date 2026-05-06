@@ -16,6 +16,20 @@ export default function Settings() {
   const [form, setForm] = useState<any>({});
   const [saving, setSaving] = useState(false);
   const [members, setMembers] = useState<any[]>([]);
+  const [pwd, setPwd] = useState("");
+  const [pwd2, setPwd2] = useState("");
+  const [pwdSaving, setPwdSaving] = useState(false);
+
+  const changePassword = async () => {
+    if (pwd.length < 8) return toast.error("Lozinka mora imati min. 8 karaktera");
+    if (pwd !== pwd2) return toast.error("Lozinke se ne podudaraju");
+    setPwdSaving(true);
+    const { error } = await supabase.auth.updateUser({ password: pwd });
+    setPwdSaving(false);
+    if (error) return toast.error(error.message);
+    setPwd(""); setPwd2("");
+    toast.success("Lozinka uspješno promijenjena");
+  };
 
   useEffect(() => { if (organization) setForm(organization); }, [organization]);
 
