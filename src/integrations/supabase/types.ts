@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      allowed_emails: {
+        Row: {
+          created_at: string
+          email: string
+          is_superadmin: boolean
+          org_roles: Json
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          is_superadmin?: boolean
+          org_roles?: Json
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          is_superadmin?: boolean
+          org_roles?: Json
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
@@ -114,6 +135,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      error_log: {
+        Row: {
+          context: Json | null
+          created_at: string
+          id: string
+          message: string
+          organization_id: string | null
+          source: string | null
+          stack: string | null
+          url: string | null
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string
+          id?: string
+          message: string
+          organization_id?: string | null
+          source?: string | null
+          stack?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string
+          id?: string
+          message?: string
+          organization_id?: string | null
+          source?: string | null
+          stack?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       invoice_counters: {
         Row: {
@@ -484,6 +547,17 @@ export type Database = {
           _details: Json
           _entity_id: string
           _entity_type: string
+        }
+        Returns: undefined
+      }
+      log_client_error: {
+        Args: {
+          _context: Json
+          _message: string
+          _source: string
+          _stack: string
+          _url: string
+          _user_agent: string
         }
         Returns: undefined
       }
