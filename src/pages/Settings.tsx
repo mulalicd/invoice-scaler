@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Building2, Users as UsersIcon, ShieldCheck } from "lucide-react";
+import { Loader2, Building2, Users as UsersIcon, ShieldCheck, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Settings() {
@@ -16,6 +16,20 @@ export default function Settings() {
   const [form, setForm] = useState<any>({});
   const [saving, setSaving] = useState(false);
   const [members, setMembers] = useState<any[]>([]);
+  const [pwd, setPwd] = useState("");
+  const [pwd2, setPwd2] = useState("");
+  const [pwdSaving, setPwdSaving] = useState(false);
+
+  const changePassword = async () => {
+    if (pwd.length < 8) return toast.error("Lozinka mora imati min. 8 karaktera");
+    if (pwd !== pwd2) return toast.error("Lozinke se ne podudaraju");
+    setPwdSaving(true);
+    const { error } = await supabase.auth.updateUser({ password: pwd });
+    setPwdSaving(false);
+    if (error) return toast.error(error.message);
+    setPwd(""); setPwd2("");
+    toast.success("Lozinka uspješno promijenjena");
+  };
 
   useEffect(() => { if (organization) setForm(organization); }, [organization]);
 
@@ -77,6 +91,7 @@ export default function Settings() {
         <TabsList>
           <TabsTrigger value="org"><Building2 className="w-4 h-4 mr-2" />Organizacija</TabsTrigger>
           <TabsTrigger value="users"><UsersIcon className="w-4 h-4 mr-2" />Korisnici</TabsTrigger>
+          <TabsTrigger value="account"><KeyRound className="w-4 h-4 mr-2" />Moj račun</TabsTrigger>
         </TabsList>
 
         <TabsContent value="org" className="space-y-4 mt-4">
@@ -168,6 +183,29 @@ export default function Settings() {
                   </div>
                 );
               })}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="account" className="mt-4 space-y-4">
+          <Card className="border-border/60 max-w-lg">
+            <CardHeader>
+              <CardTitle className="text-base">Promjena lozinke</CardTitle>
+              <CardDescription>Postavite novu lozinku za svoj račun ({profile?.email})</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Nova lozinka</Label>
+                <Input type="password" value={pwd} onChange={e => setPwd(e.target.value)} placeholder="min. 8 karaktera" />
+              </div>
+              <div className="space-y-2">
+                <Label>Potvrdi novu lozinku</Label>
+                <Input type="password" value={pwd2} onChange={e => setPwd2(e.target.value)} />
+              </div>
+              <Button onClick={changePassword} disabled={pwdSaving}>
+                {pwdSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Promijeni lozinku
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
