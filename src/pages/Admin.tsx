@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { toast } from "sonner";
 import { Trash2, Shield, AlertTriangle } from "lucide-react";
 import { Navigate } from "react-router-dom";
+import InvoiceImport from "@/components/InvoiceImport";
 
 export default function Admin() {
   const { isAdmin, isSuperadmin, organization, refresh } = useAuth();
@@ -57,6 +58,8 @@ export default function Admin() {
           </CardContent>
         </Card>
       )}
+
+      <InvoiceImport />
 
       <Card className="border-destructive/50">
         <CardHeader>
