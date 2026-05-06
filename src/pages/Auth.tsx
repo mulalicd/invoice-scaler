@@ -113,6 +113,11 @@ export default function Auth() {
                     {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     Prijavi se
                   </Button>
+                  <div className="text-center">
+                    <Link to="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground">
+                      Zaboravili ste lozinku?
+                    </Link>
+                  </div>
                 </CardContent>
               </form>
             </TabsContent>
