@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Building2, Users as UsersIcon, ShieldCheck } from "lucide-react";
+import { Loader2, Building2, Users as UsersIcon, ShieldCheck, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Settings() {
