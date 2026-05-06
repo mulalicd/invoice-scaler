@@ -7,6 +7,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Loader2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Auth from "./pages/Auth";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import Invoices from "./pages/Invoices";
