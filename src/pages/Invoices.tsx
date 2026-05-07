@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, FileText } from "lucide-react";
+import { Plus, Search, FileText, Download, Printer, Loader2 } from "lucide-react";
 import { formatKM, formatDate } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
+import { downloadInvoicePdf, printInvoice } from "@/lib/invoicePdf";
+import { toast } from "sonner";
 
 export default function Invoices() {
   const { organization } = useAuth();
