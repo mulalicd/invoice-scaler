@@ -6,15 +6,31 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, FileText } from "lucide-react";
+import { Plus, Search, FileText, Download, Printer, Loader2 } from "lucide-react";
 import { formatKM, formatDate } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
+import { downloadInvoicePdf, printInvoice } from "@/lib/invoicePdf";
+import { toast } from "sonner";
 
 export default function Invoices() {
   const { organization } = useAuth();
   const [list, setList] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const handlePdf = async (id: string) => {
+    setBusyId(id);
+    try { await downloadInvoicePdf(id); toast.success("PDF preuzet"); }
+    catch (e: any) { toast.error(e.message || "Greška PDF"); }
+    finally { setBusyId(null); }
+  };
+  const handlePrint = async (id: string) => {
+    setBusyId(id);
+    try { await printInvoice(id); }
+    catch (e: any) { toast.error(e.message || "Greška print"); }
+    finally { setBusyId(null); }
+  };
 
   useEffect(() => {
     if (!organization) return;
@@ -80,11 +96,12 @@ export default function Invoices() {
                     <th className="text-left font-medium px-5 py-3">Period</th>
                     <th className="text-right font-medium px-5 py-3">Iznos</th>
                     <th className="text-left font-medium px-5 py-3">Status</th>
+                    <th className="text-right font-medium px-5 py-3">Akcije</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {filtered.map(i => (
-                    <tr key={i.id} className="hover:bg-accent/30 transition-smooth cursor-pointer">
+                    <tr key={i.id} className="hover:bg-accent/30 transition-smooth">
                       <td className="px-5 py-3 font-mono font-medium">
                         <Link to={`/invoices/${i.id}`}>{i.invoice_number}</Link>
                       </td>
@@ -93,6 +110,14 @@ export default function Invoices() {
                       <td className="px-5 py-3 text-muted-foreground"><Link to={`/invoices/${i.id}`}>{i.period_text || "—"}</Link></td>
                       <td className="px-5 py-3 text-right font-medium tabular-nums"><Link to={`/invoices/${i.id}`}>{formatKM(Number(i.total))}</Link></td>
                       <td className="px-5 py-3"><Link to={`/invoices/${i.id}`}><StatusBadge status={i.status} /></Link></td>
+                      <td className="px-5 py-3 text-right whitespace-nowrap">
+                        <Button variant="ghost" size="icon" title="PDF" disabled={busyId === i.id} onClick={() => handlePdf(i.id)}>
+                          {busyId === i.id ? <Loader2 className="w-4 h-4 animate-spin"/> : <Download className="w-4 h-4"/>}
+                        </Button>
+                        <Button variant="ghost" size="icon" title="Štampa" disabled={busyId === i.id} onClick={() => handlePrint(i.id)}>
+                          <Printer className="w-4 h-4"/>
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
