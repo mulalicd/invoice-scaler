@@ -17,6 +17,20 @@ export default function Invoices() {
   const [list, setList] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const handlePdf = async (id: string) => {
+    setBusyId(id);
+    try { await downloadInvoicePdf(id); toast.success("PDF preuzet"); }
+    catch (e: any) { toast.error(e.message || "Greška PDF"); }
+    finally { setBusyId(null); }
+  };
+  const handlePrint = async (id: string) => {
+    setBusyId(id);
+    try { await printInvoice(id); }
+    catch (e: any) { toast.error(e.message || "Greška print"); }
+    finally { setBusyId(null); }
+  };
 
   useEffect(() => {
     if (!organization) return;
