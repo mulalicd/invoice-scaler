@@ -96,11 +96,12 @@ export default function Invoices() {
                     <th className="text-left font-medium px-5 py-3">Period</th>
                     <th className="text-right font-medium px-5 py-3">Iznos</th>
                     <th className="text-left font-medium px-5 py-3">Status</th>
+                    <th className="text-right font-medium px-5 py-3">Akcije</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {filtered.map(i => (
-                    <tr key={i.id} className="hover:bg-accent/30 transition-smooth cursor-pointer">
+                    <tr key={i.id} className="hover:bg-accent/30 transition-smooth">
                       <td className="px-5 py-3 font-mono font-medium">
                         <Link to={`/invoices/${i.id}`}>{i.invoice_number}</Link>
                       </td>
@@ -109,6 +110,14 @@ export default function Invoices() {
                       <td className="px-5 py-3 text-muted-foreground"><Link to={`/invoices/${i.id}`}>{i.period_text || "—"}</Link></td>
                       <td className="px-5 py-3 text-right font-medium tabular-nums"><Link to={`/invoices/${i.id}`}>{formatKM(Number(i.total))}</Link></td>
                       <td className="px-5 py-3"><Link to={`/invoices/${i.id}`}><StatusBadge status={i.status} /></Link></td>
+                      <td className="px-5 py-3 text-right whitespace-nowrap">
+                        <Button variant="ghost" size="icon" title="PDF" disabled={busyId === i.id} onClick={() => handlePdf(i.id)}>
+                          {busyId === i.id ? <Loader2 className="w-4 h-4 animate-spin"/> : <Download className="w-4 h-4"/>}
+                        </Button>
+                        <Button variant="ghost" size="icon" title="Štampa" disabled={busyId === i.id} onClick={() => handlePrint(i.id)}>
+                          <Printer className="w-4 h-4"/>
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
