@@ -501,6 +501,10 @@ export type Database = {
           skipped: number
         }[]
       }
+      bulk_import_invoices_detailed: {
+        Args: { _invoices: Json; _org_id: string }
+        Returns: Json
+      }
       claim_organization: { Args: { _org_id: string }; Returns: string }
       get_active_org: { Args: { _user_id: string }; Returns: string }
       get_organizations_for_onboarding: {
