@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { FileText, Loader2 } from "lucide-react";
+import { lazy, Suspense } from "react";
+const AuthScene = lazy(() => import("@/components/three/AuthScene"));
 
 const emailSchema = z.string().trim().email("Neispravna email adresa").max(255);
 const passwordSchema = z.string().min(8, "Minimalno 8 karaktera").max(72);
@@ -78,17 +80,23 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-accent/30 to-background">
-      <div className="w-full max-w-md space-y-6 animate-fade-in">
+    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden bg-gradient-to-br from-[hsl(220,40%,8%)] via-[hsl(213,60%,18%)] to-[hsl(220,40%,8%)]">
+      {/* 3D scena u pozadini */}
+      <div className="absolute inset-0 opacity-90">
+        <Suspense fallback={null}><AuthScene /></Suspense>
+      </div>
+      {/* mekani vignette */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(220,40%,8%)_85%)] pointer-events-none" />
+      <div className="w-full max-w-md space-y-6 animate-fade-in relative z-10">
         <div className="text-center space-y-3">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl gradient-primary shadow-elegant">
             <FileText className="w-7 h-7 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-display font-bold">Faktura Sistem</h1>
-          <p className="text-muted-foreground text-sm">IDSS · IMH</p>
+          <h1 className="text-3xl font-display font-bold text-white drop-shadow-lg">Faktura Sistem</h1>
+          <p className="text-white/70 text-sm tracking-wide">IDSS · IMH · Platinum Standard</p>
         </div>
 
-        <Card className="shadow-elegant border-border/40">
+        <Card className="shadow-elegant border-white/10 bg-card/95 backdrop-blur-xl">
           <Tabs defaultValue="signin">
             <CardHeader className="space-y-4">
               <TabsList className="grid grid-cols-2 w-full">
@@ -158,7 +166,7 @@ export default function Auth() {
           </Tabs>
         </Card>
 
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="text-center text-xs text-white/50">
           © {new Date().getFullYear()} IDSS · IMH · Sistem fakturisanja
         </p>
       </div>
