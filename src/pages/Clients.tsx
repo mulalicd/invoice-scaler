@@ -30,7 +30,7 @@ const schema = z.object({
 });
 
 export default function Clients() {
-  const { organization, isAdmin } = useAuth();
+  const { organization, isAdmin, canWrite } = useAuth();
   const [list, setList] = useState<Client[]>([]);
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
@@ -95,6 +95,7 @@ export default function Clients() {
           <h1 className="text-3xl font-display font-bold">Klijenti</h1>
           <p className="text-muted-foreground text-sm">Ukupno {list.length} {list.length === 1 ? "klijent" : "klijenata"}</p>
         </div>
+        {canWrite && (
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button onClick={openNew}><Plus className="w-4 h-4 mr-2" />Novi klijent</Button>
