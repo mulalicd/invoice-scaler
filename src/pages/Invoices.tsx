@@ -73,7 +73,7 @@ export default function Invoices() {
       i.invoice_number, i.clients?.name ?? "", i.clients?.jib ?? "",
       i.issue_date, i.period_text ?? "", String(i.total).replace(".", ","), i.status,
     ]);
-    const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replaceAll('"','""')}"`).join(";")).join("\n");
+    const csv = [header, ...rows].map(r => r.map(v => `"${String(v).split('"').join('""')}"`).join(";")).join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
