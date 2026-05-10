@@ -33,7 +33,6 @@ const newRow = (): ItemRow => ({
 export default function NewInvoice() {
   const navigate = useNavigate();
   const { organization, canWrite } = useAuth();
-  if (!canWrite) return <Navigate to="/invoices" replace />;
   const [clients, setClients] = useState<any[]>([]);
   const [clientId, setClientId] = useState<string>("");
   const today = new Date().toISOString().slice(0, 10);
