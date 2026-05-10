@@ -148,6 +148,7 @@ export default function Clients() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       <div className="relative max-w-md">
@@ -173,7 +174,7 @@ export default function Clients() {
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(c)}><Pencil className="w-4 h-4" /></Button>
+                    {canWrite && <Button variant="ghost" size="icon" onClick={() => openEdit(c)}><Pencil className="w-4 h-4" /></Button>}
                     {isAdmin && <Button variant="ghost" size="icon" onClick={() => remove(c)}><Trash2 className="w-4 h-4 text-destructive" /></Button>}
                   </div>
                 </div>
