@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, ArrowLeft, Loader2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import { formatKM } from "@/lib/format";
 import { numberToBosnianWords } from "@/lib/numberToWords";
@@ -32,7 +32,8 @@ const newRow = (): ItemRow => ({
 
 export default function NewInvoice() {
   const navigate = useNavigate();
-  const { organization } = useAuth();
+  const { organization, canWrite } = useAuth();
+  if (!canWrite) return <Navigate to="/invoices" replace />;
   const [clients, setClients] = useState<any[]>([]);
   const [clientId, setClientId] = useState<string>("");
   const today = new Date().toISOString().slice(0, 10);
