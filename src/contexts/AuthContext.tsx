@@ -21,7 +21,7 @@ interface Organization {
   invoice_prefix: string | null; default_payment_days: number | null; default_note: string | null;
 }
 
-type Role = "admin" | "accountant" | "superadmin";
+type Role = "admin" | "accountant" | "superadmin" | "viewer";
 
 interface RoleEntry { role: Role; organization_id: string | null; }
 
@@ -36,6 +36,8 @@ interface AuthContextValue {
   loading: boolean;
   isAdmin: boolean;
   isSuperadmin: boolean;
+  isViewer: boolean;
+  canWrite: boolean;
   switchOrg: (orgId: string) => Promise<void>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -101,11 +103,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const roles = roleEntries.map(r => r.role);
   const isSuperadmin = roles.includes("superadmin");
   const isAdmin = isSuperadmin || roleEntries.some(r => r.role === "admin" && r.organization_id === organization?.id);
+  const orgRoles = roleEntries.filter(r => r.organization_id === organization?.id).map(r => r.role);
+  const isViewer = !isSuperadmin && orgRoles.length > 0 && orgRoles.every(r => r === "viewer");
+  const canWrite = isAdmin; // admins/superadmins write; viewers/accountants (legacy) treated read-only here
 
   return (
     <AuthContext.Provider value={{
       user, session, profile, organization, organizations, roleEntries, roles, loading,
-      isAdmin, isSuperadmin, switchOrg, signOut, refresh,
+      isAdmin, isSuperadmin, isViewer, canWrite, switchOrg, signOut, refresh,
     }}>
       {children}
     </AuthContext.Provider>

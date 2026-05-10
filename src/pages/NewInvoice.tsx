@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, ArrowLeft, Loader2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import { formatKM } from "@/lib/format";
 import { numberToBosnianWords } from "@/lib/numberToWords";
@@ -32,7 +32,7 @@ const newRow = (): ItemRow => ({
 
 export default function NewInvoice() {
   const navigate = useNavigate();
-  const { organization } = useAuth();
+  const { organization, canWrite } = useAuth();
   const [clients, setClients] = useState<any[]>([]);
   const [clientId, setClientId] = useState<string>("");
   const today = new Date().toISOString().slice(0, 10);
@@ -47,12 +47,13 @@ export default function NewInvoice() {
   const dueDate = new Date(new Date(issueDate).getTime() + dueDays * 86400000).toISOString().slice(0, 10);
 
   useEffect(() => {
+    if (!canWrite) { navigate("/invoices", { replace: true }); return; }
     (async () => {
       const { data } = await supabase.from("clients").select("id, name").order("name");
       setClients(data ?? []);
     })();
     if (organization?.default_note && !note) setNote(organization.default_note);
-  }, [organization]);
+  }, [organization, canWrite, navigate]);
 
   const subtotal = items.reduce((s, r) => s + Number(r.quantity || 0) * Number(r.unit_price || 0), 0);
 
