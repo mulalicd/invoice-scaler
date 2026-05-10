@@ -47,12 +47,13 @@ export default function NewInvoice() {
   const dueDate = new Date(new Date(issueDate).getTime() + dueDays * 86400000).toISOString().slice(0, 10);
 
   useEffect(() => {
+    if (!canWrite) { navigate("/invoices", { replace: true }); return; }
     (async () => {
       const { data } = await supabase.from("clients").select("id, name").order("name");
       setClients(data ?? []);
     })();
     if (organization?.default_note && !note) setNote(organization.default_note);
-  }, [organization]);
+  }, [organization, canWrite, navigate]);
 
   const subtotal = items.reduce((s, r) => s + Number(r.quantity || 0) * Number(r.unit_price || 0), 0);
 
