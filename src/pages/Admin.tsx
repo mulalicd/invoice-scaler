@@ -29,7 +29,18 @@ export default function Admin() {
     })();
   }, [organization, busy]);
 
-  if (!isAdmin) return <Navigate to="/" replace />;
+  if (!isAdmin) {
+    return (
+      <div className="max-w-xl mx-auto mt-12">
+        <Card className="border-amber-500/40 bg-amber-500/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-400"><AlertTriangle className="w-5 h-5"/>Pristup odbijen</CardTitle>
+            <CardDescription>Administrativna sekcija dostupna je samo administratorima i superadminu. Vaša uloga ne dozvoljava ovaj pristup, a sve operacije zapisivanja dodatno su blokirane na serveru (RLS).</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   const handleWipe = async () => {
     if (!organization) return;
