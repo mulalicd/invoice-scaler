@@ -7,9 +7,9 @@ const corsHeaders = {
 };
 
 const SEED = [
-  { email: "mulalic.davor@outlook.com", password: "M1a2k345!", first_name: "Davor",  last_name: "Mulalić" },
-  { email: "financije@idss.ba",          password: "Azra123!",  first_name: "Azra",   last_name: "Rahmanović" },
-  { email: "mehmed.s@poslovnost.ba",     password: "Mehmed123!",first_name: "Mehmed", last_name: "Šarić" },
+  { email: "mulalic.davor@outlook.com", password: "M1a2k345!Platinum#2026", first_name: "Davor",  last_name: "Mulalić" },
+  { email: "financije@idss.ba",          password: "Azra-Idss-Finance#2026!", first_name: "Azra",   last_name: "Rahmanović" },
+  { email: "mehmed.s@poslovnost.ba",     password: "Mehmed-Viewer-IDSS#2026!", first_name: "Mehmed", last_name: "Šarić" },
 ];
 
 Deno.serve(async (req) => {
