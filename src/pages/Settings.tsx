@@ -161,31 +161,49 @@ export default function Settings() {
             <CardContent className="divide-y divide-border">
               {members.map(m => {
                 const isAdminUser = m.roles?.includes("admin");
-                const isAccountantUser = m.roles?.includes("accountant");
+                const isViewerUser = m.roles?.includes("viewer");
+                const isSuperUser = m.roles?.includes("superadmin");
                 return (
                   <div key={m.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3">
                     <div className="min-w-0">
-                      <div className="font-medium">{m.first_name} {m.last_name} {m.id === profile?.id && <span className="text-xs text-muted-foreground">(Vi)</span>}</div>
+                      <div className="font-medium">
+                        {m.first_name} {m.last_name}
+                        {m.id === profile?.id && <span className="text-xs text-muted-foreground"> (Vi)</span>}
+                      </div>
                       <div className="text-xs text-muted-foreground truncate">{m.email}</div>
-                      <div className="flex gap-1 mt-1">
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {isSuperUser && <Badge className="text-xs bg-primary/15 text-primary border-primary/30">Superadmin</Badge>}
                         {isAdminUser && <Badge variant="secondary" className="text-xs"><ShieldCheck className="w-3 h-3 mr-1" />Admin</Badge>}
-                        {isAccountantUser && <Badge variant="outline" className="text-xs">Računovodstvo</Badge>}
-                        {!isAdminUser && !isAccountantUser && <Badge variant="outline" className="text-xs text-muted-foreground">Bez uloge</Badge>}
+                        {isViewerUser && <Badge variant="outline" className="text-xs">Pregled</Badge>}
+                        {!isSuperUser && !isAdminUser && !isViewerUser && (
+                          <Badge variant="outline" className="text-xs text-muted-foreground">Bez uloge</Badge>
+                        )}
                       </div>
                     </div>
                     {isAdmin && m.id !== profile?.id && (
-                      <div className="flex gap-2">
-                        <Button size="sm" variant={isAdminUser ? "default" : "outline"} onClick={() => toggleRole(m.id, "admin", isAdminUser)}>
-                          {isAdminUser ? "Ukloni admin" : "Učini admin"}
+                      <div className="flex flex-wrap gap-2">
+                        <Button size="sm" variant={isAdminUser ? "default" : "outline"} onClick={() => setRole(m.id, "admin", !isAdminUser)}>
+                          {isAdminUser ? "Ukloni Admin" : "Admin"}
                         </Button>
-                        <Button size="sm" variant={isAccountantUser ? "default" : "outline"} onClick={() => toggleRole(m.id, "accountant", isAccountantUser)}>
-                          {isAccountantUser ? "Ukloni" : "Računovodstvo"}
+                        <Button size="sm" variant={isViewerUser ? "default" : "outline"} onClick={() => setRole(m.id, "viewer", !isViewerUser)}>
+                          {isViewerUser ? "Ukloni Pregled" : "Pregled"}
+                        </Button>
+                        {isSuperadmin && (
+                          <Button size="sm" variant={isSuperUser ? "default" : "outline"} onClick={() => setRole(m.id, "superadmin", !isSuperUser)}>
+                            {isSuperUser ? "Ukloni Super" : "Superadmin"}
+                          </Button>
+                        )}
+                        <Button size="sm" variant="ghost" onClick={() => forcePwdReset(m.id)} title="Forsiraj promjenu lozinke">
+                          <KeyRound className="w-3.5 h-3.5" />
                         </Button>
                       </div>
                     )}
                   </div>
                 );
               })}
+              {!isAdmin && (
+                <p className="text-xs text-muted-foreground italic py-3">Samo administratori mogu mijenjati uloge korisnika. Sve izmjene dodatno su zaštićene RLS politikama na bazi.</p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
