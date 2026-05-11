@@ -21,7 +21,24 @@ Deno.serve(async (req) => {
     { auth: { persistSession: false } },
   );
 
+  const allowedEmails = new Set(SEED.map(s => s.email.toLowerCase()));
   const results: any[] = [];
+  const removed: string[] = [];
+
+  // Lockout: ukloni sve auth korisnike koji NISU u whitelist-u
+  try {
+    const { data: list } = await admin.auth.admin.listUsers();
+    for (const u of list?.users ?? []) {
+      const e = (u.email ?? "").toLowerCase();
+      if (e && !allowedEmails.has(e)) {
+        const { error: delErr } = await admin.auth.admin.deleteUser(u.id);
+        removed.push(`${u.email}${delErr ? `: ${delErr.message}` : ""}`);
+      }
+    }
+  } catch (e: any) {
+    removed.push(`lockout_error: ${e.message}`);
+  }
+
   for (const u of SEED) {
     try {
       // Check if user already exists
