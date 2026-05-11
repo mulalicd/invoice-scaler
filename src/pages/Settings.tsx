@@ -12,7 +12,7 @@ import { Loader2, Building2, Users as UsersIcon, ShieldCheck, KeyRound } from "l
 import { toast } from "sonner";
 
 export default function Settings() {
-  const { organization, isAdmin, refresh, profile } = useAuth();
+  const { organization, isAdmin, isSuperadmin, refresh, profile } = useAuth();
   const [form, setForm] = useState<any>({});
   const [saving, setSaving] = useState(false);
   const [members, setMembers] = useState<any[]>([]);
