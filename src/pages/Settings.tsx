@@ -33,21 +33,22 @@ export default function Settings() {
 
   useEffect(() => { if (organization) setForm(organization); }, [organization]);
 
-  useEffect(() => {
+  const reloadMembers = async () => {
     if (!organization) return;
-    (async () => {
-      const { data: profs } = await supabase.from("profiles")
-        .select("id, email, first_name, last_name, organization_id")
-        .eq("organization_id", organization.id);
-      const { data: roles } = await supabase.from("user_roles")
-        .select("user_id, role").eq("organization_id", organization.id);
-      const merged = (profs ?? []).map((p: any) => ({
-        ...p,
-        roles: (roles ?? []).filter((r: any) => r.user_id === p.id).map((r: any) => r.role),
-      }));
-      setMembers(merged);
-    })();
-  }, [organization]);
+    const { data: profs } = await supabase.from("profiles")
+      .select("id, email, first_name, last_name, organization_id")
+      .eq("organization_id", organization.id);
+    const { data: roles } = await supabase.from("user_roles")
+      .select("user_id, role, organization_id")
+      .or(`organization_id.eq.${organization.id},organization_id.is.null`);
+    const merged = (profs ?? []).map((p: any) => ({
+      ...p,
+      roles: (roles ?? []).filter((r: any) => r.user_id === p.id).map((r: any) => r.role),
+    }));
+    setMembers(merged);
+  };
+
+  useEffect(() => { reloadMembers(); /* eslint-disable-next-line */ }, [organization]);
 
   const save = async () => {
     if (!organization || !isAdmin) return;
@@ -66,18 +67,20 @@ export default function Settings() {
     await refresh();
   };
 
-  const toggleRole = async (userId: string, role: "admin" | "accountant", has: boolean) => {
+  const setRole = async (userId: string, role: "admin" | "viewer" | "superadmin", grant: boolean) => {
     if (!organization) return;
-    if (has) {
-      await supabase.from("user_roles").delete()
-        .eq("user_id", userId).eq("role", role).eq("organization_id", organization.id);
-    } else {
-      await supabase.from("user_roles").insert({ user_id: userId, role, organization_id: organization.id } as any);
-    }
-    toast.success("Uloga ažurirana");
-    // refresh members
-    const { data: roles } = await supabase.from("user_roles").select("user_id, role").eq("organization_id", organization.id);
-    setMembers(members.map(m => ({ ...m, roles: (roles ?? []).filter((r: any) => r.user_id === m.id).map((r: any) => r.role) })));
+    const { error } = await supabase.rpc("admin_set_user_role" as any, {
+      _user_id: userId, _org_id: organization.id, _role: role, _grant: grant,
+    });
+    if (error) return toast.error(error.message);
+    toast.success(grant ? `Dodijeljena uloga: ${role}` : `Uklonjena uloga: ${role}`);
+    await reloadMembers();
+  };
+
+  const forcePwdReset = async (userId: string) => {
+    const { error } = await supabase.from("profiles").update({ must_change_password: true } as any).eq("id", userId);
+    if (error) return toast.error(error.message);
+    toast.success("Korisnik mora promijeniti lozinku pri sljedećoj prijavi");
   };
 
   return (
