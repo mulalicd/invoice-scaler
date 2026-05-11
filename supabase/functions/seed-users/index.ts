@@ -7,9 +7,9 @@ const corsHeaders = {
 };
 
 const SEED = [
-  { email: "mulalic.davor@outlook.com", password: "M1a2k345!", first_name: "Davor",  last_name: "Mulalić" },
-  { email: "financije@idss.ba",          password: "Azra123!",  first_name: "Azra",   last_name: "Rahmanović" },
-  { email: "mehmed.s@poslovnost.ba",     password: "Mehmed123!",first_name: "Mehmed", last_name: "Šarić" },
+  { email: "mulalic.davor@outlook.com", password: "M1a2k345!Platinum#2026", first_name: "Davor",  last_name: "Mulalić" },
+  { email: "financije@idss.ba",          password: "Azra-Idss-Finance#2026!", first_name: "Azra",   last_name: "Rahmanović" },
+  { email: "mehmed.s@poslovnost.ba",     password: "Mehmed-Viewer-IDSS#2026!", first_name: "Mehmed", last_name: "Šarić" },
 ];
 
 Deno.serve(async (req) => {
@@ -21,10 +21,27 @@ Deno.serve(async (req) => {
     { auth: { persistSession: false } },
   );
 
+  const allowedEmails = new Set(SEED.map(s => s.email.toLowerCase()));
   const results: any[] = [];
+  const removed: string[] = [];
+
+  // Lockout: ukloni sve auth korisnike koji NISU u whitelist-u
+  try {
+    const { data: list } = await admin.auth.admin.listUsers();
+    for (const u of list?.users ?? []) {
+      const e = (u.email ?? "").toLowerCase();
+      if (e && !allowedEmails.has(e)) {
+        const { error: delErr } = await admin.auth.admin.deleteUser(u.id);
+        removed.push(`${u.email}${delErr ? `: ${delErr.message}` : ""}`);
+      }
+    }
+  } catch (e: any) {
+    removed.push(`lockout_error: ${e.message}`);
+  }
+
   for (const u of SEED) {
     try {
-      // Check if user already exists
+      // Check if user already exists (refetch to be safe after lockout)
       const { data: list } = await admin.auth.admin.listUsers();
       const existing = list?.users?.find((x: any) => x.email?.toLowerCase() === u.email.toLowerCase());
 
@@ -50,7 +67,7 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify({ results }, null, 2), {
+  return new Response(JSON.stringify({ results, removed }, null, 2), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });

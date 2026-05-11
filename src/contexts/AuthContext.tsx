@@ -9,6 +9,7 @@ interface Profile {
   last_name: string | null;
   organization_id: string | null;
   active_organization_id?: string | null;
+  must_change_password?: boolean;
 }
 
 interface Organization {

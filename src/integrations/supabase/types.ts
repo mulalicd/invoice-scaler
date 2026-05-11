@@ -409,6 +409,7 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          must_change_password: boolean
           organization_id: string | null
           updated_at: string
         }
@@ -419,6 +420,7 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
+          must_change_password?: boolean
           organization_id?: string | null
           updated_at?: string
         }
@@ -429,6 +431,7 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          must_change_password?: boolean
           organization_id?: string | null
           updated_at?: string
         }
@@ -486,6 +489,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_user_role: {
+        Args: {
+          _grant: boolean
+          _org_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
       bulk_import_clients: {
         Args: { _clients: Json; _org_id: string }
         Returns: {
