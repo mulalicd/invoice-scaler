@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
 
   for (const u of SEED) {
     try {
-      // Check if user already exists
+      // Check if user already exists (refetch to be safe after lockout)
       const { data: list } = await admin.auth.admin.listUsers();
       const existing = list?.users?.find((x: any) => x.email?.toLowerCase() === u.email.toLowerCase());
 
