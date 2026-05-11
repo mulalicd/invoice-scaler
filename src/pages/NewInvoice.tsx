@@ -47,13 +47,29 @@ export default function NewInvoice() {
   const dueDate = new Date(new Date(issueDate).getTime() + dueDays * 86400000).toISOString().slice(0, 10);
 
   useEffect(() => {
-    if (!canWrite) { navigate("/invoices", { replace: true }); return; }
+    if (!canWrite) return;
     (async () => {
       const { data } = await supabase.from("clients").select("id, name").order("name");
       setClients(data ?? []);
     })();
     if (organization?.default_note && !note) setNote(organization.default_note);
-  }, [organization, canWrite, navigate]);
+  }, [organization, canWrite]);
+
+  if (!canWrite) {
+    return (
+      <div className="max-w-xl mx-auto mt-12">
+        <Card className="border-amber-500/40 bg-amber-500/5">
+          <CardHeader>
+            <CardTitle className="text-amber-700 dark:text-amber-400">Nemate ovlaštenje</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <p>Vaša uloga (pregled / viewer) ne dozvoljava kreiranje faktura. Sve operacije pisanja blokirane su i na serveru (RLS).</p>
+            <Button asChild variant="secondary"><Link to="/invoices"><ArrowLeft className="w-4 h-4 mr-2"/>Nazad na fakture</Link></Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const subtotal = items.reduce((s, r) => s + Number(r.quantity || 0) * Number(r.unit_price || 0), 0);
 
