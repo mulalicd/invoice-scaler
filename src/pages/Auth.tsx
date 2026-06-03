@@ -17,16 +17,8 @@ const passwordSchema = z.string().min(1, "Unesite lozinku").max(72);
 export default function Auth() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-
-  // sign in state
   const [siEmail, setSiEmail] = useState("");
   const [siPwd, setSiPwd] = useState("");
-
-  // sign up state
-  const [suEmail, setSuEmail] = useState("");
-  const [suPwd, setSuPwd] = useState("");
-  const [suFirst, setSuFirst] = useState("");
-  const [suLast, setSuLast] = useState("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -46,46 +38,20 @@ export default function Auth() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email: siEmail, password: siPwd });
     setLoading(false);
-    if (error) return toast.error(error.message === "Invalid login credentials" ? "Neispravan email ili lozinka" : error.message);
+    if (error) {
+      return toast.error(
+        error.message === "Invalid login credentials" ? "Neispravan email ili lozinka" : error.message
+      );
+    }
     toast.success("Prijava uspješna");
     navigate("/");
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      nameSchema.parse(suFirst);
-      nameSchema.parse(suLast);
-      emailSchema.parse(suEmail);
-      passwordSchema.parse(suPwd);
-    } catch (err) {
-      if (err instanceof z.ZodError) { toast.error(err.errors[0].message); return; }
-      toast.error("Neispravan unos"); return;
-    }
-    setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email: suEmail,
-      password: suPwd,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-        data: { first_name: suFirst, last_name: suLast },
-      },
-    });
-    setLoading(false);
-    if (error) {
-      if (error.message.includes("already registered")) return toast.error("Korisnik s ovim email-om već postoji");
-      return toast.error(error.message);
-    }
-    toast.success("Račun kreiran! Prijavite se.");
-  };
-
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden bg-gradient-to-br from-[hsl(220,40%,8%)] via-[hsl(213,60%,18%)] to-[hsl(220,40%,8%)]">
-      {/* 3D scena u pozadini */}
       <div className="absolute inset-0 opacity-90">
         <Suspense fallback={null}><AuthScene /></Suspense>
       </div>
-      {/* mekani vignette */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(220,40%,8%)_85%)] pointer-events-none" />
       <div className="w-full max-w-md space-y-6 animate-fade-in relative z-10">
         <div className="text-center space-y-3">
@@ -97,73 +63,35 @@ export default function Auth() {
         </div>
 
         <Card className="shadow-elegant border-white/10 bg-card/95 backdrop-blur-xl">
-          <Tabs defaultValue="signin">
-            <CardHeader className="space-y-4">
-              <TabsList className="grid grid-cols-2 w-full">
-                <TabsTrigger value="signin">Prijava</TabsTrigger>
-                <TabsTrigger value="signup">Registracija</TabsTrigger>
-              </TabsList>
-            </CardHeader>
-
-            <TabsContent value="signin" className="m-0">
-              <form onSubmit={handleSignIn}>
-                <CardContent className="space-y-4">
-                  <CardDescription>Unesite svoje pristupne podatke</CardDescription>
-                  <div className="space-y-2">
-                    <Label>Email</Label>
-                    <Input type="email" value={siEmail} onChange={e => setSiEmail(e.target.value)} required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Lozinka</Label>
-                    <Input type="password" value={siPwd} onChange={e => setSiPwd(e.target.value)} required />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Prijavi se
-                  </Button>
-                  <div className="text-center">
-                    <Link to="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground">
-                      Zaboravili ste lozinku?
-                    </Link>
-                  </div>
-                </CardContent>
-              </form>
-            </TabsContent>
-
-            <TabsContent value="signup" className="m-0">
-              <form onSubmit={handleSignUp}>
-                <CardContent className="space-y-4">
-                  <CardDescription>Kreirajte novi račun</CardDescription>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label>Ime</Label>
-                      <Input value={suFirst} onChange={e => setSuFirst(e.target.value)} required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Prezime</Label>
-                      <Input value={suLast} onChange={e => setSuLast(e.target.value)} required />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Email</Label>
-                    <Input type="email" value={suEmail} onChange={e => setSuEmail(e.target.value)} required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Lozinka</Label>
-                    <Input type="password" value={suPwd} onChange={e => setSuPwd(e.target.value)} required />
-                    <p className="text-xs text-muted-foreground">Min. 8 karaktera</p>
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Kreiraj račun
-                  </Button>
-                  <p className="text-xs text-muted-foreground text-center">
-                    Nakon registracije, administrator će Vam dodijeliti organizaciju i ulogu.
-                  </p>
-                </CardContent>
-              </form>
-            </TabsContent>
-          </Tabs>
+          <CardHeader className="space-y-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-primary" /> Prijava
+            </CardTitle>
+            <CardDescription>
+              Pristup je ograničen na ovlaštene korisnike (whitelist). Registracija nije dostupna.
+            </CardDescription>
+          </CardHeader>
+          <form onSubmit={handleSignIn}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input type="email" autoComplete="email" value={siEmail} onChange={e => setSiEmail(e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Lozinka</Label>
+                <Input type="password" autoComplete="current-password" value={siPwd} onChange={e => setSiPwd(e.target.value)} required />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Prijavi se
+              </Button>
+              <div className="text-center">
+                <Link to="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground">
+                  Zaboravili ste lozinku?
+                </Link>
+              </div>
+            </CardContent>
+          </form>
         </Card>
 
         <p className="text-center text-xs text-white/50">

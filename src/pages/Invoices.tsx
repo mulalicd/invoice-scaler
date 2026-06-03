@@ -53,11 +53,11 @@ export default function Invoices() {
     if (!search) return true;
     const q = search.toLowerCase().trim();
     return (
-      i.invoice_number.toLowerCase().includes(q) ||
-      i.clients?.name?.toLowerCase().includes(q) ||
-      i.clients?.jib?.includes(q) ||
-      i.clients?.jmbg?.includes(q) ||
-      (i.period_text || "").toLowerCase().includes(q)
+      (i.invoice_number ?? "").toLowerCase().includes(q) ||
+      (i.clients?.name ?? "").toLowerCase().includes(q) ||
+      (i.clients?.jib ?? "").includes(q) ||
+      (i.clients?.jmbg ?? "").includes(q) ||
+      (i.period_text ?? "").toLowerCase().includes(q)
     );
   }), [list, search, statusFilter, from, to]);
 
