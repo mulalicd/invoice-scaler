@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX IF NOT EXISTS invoices_org_number_unique ON public.invoices (organization_id, invoice_number);
+CREATE UNIQUE INDEX IF NOT EXISTS invoices_org_year_seq_unique ON public.invoices (organization_id, invoice_year, invoice_seq);
