@@ -39,12 +39,41 @@ async function renderInvoiceToCanvas(invoiceId: string): Promise<{ canvas: HTMLC
   return { canvas, invoiceNumber: invoice.invoice_number };
 }
 
+/** Paginate a tall canvas into multiple A4 pages without cutting content. */
+export function canvasToA4Pdf(canvas: HTMLCanvasElement): jsPDF {
+  const pdf = new jsPDF({ format: "a4", unit: "mm", orientation: "portrait" });
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const pxPerMm = canvas.width / pageW;
+  const pageHpx = Math.floor(pageH * pxPerMm);
+
+  if (canvas.height <= pageHpx) {
+    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, pageW, (canvas.height * pageW) / canvas.width);
+    return pdf;
+  }
+
+  let y = 0;
+  let first = true;
+  while (y < canvas.height) {
+    const sliceH = Math.min(pageHpx, canvas.height - y);
+    const slice = document.createElement("canvas");
+    slice.width = canvas.width;
+    slice.height = sliceH;
+    const ctx = slice.getContext("2d")!;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, slice.width, slice.height);
+    ctx.drawImage(canvas, 0, y, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+    if (!first) pdf.addPage();
+    pdf.addImage(slice.toDataURL("image/png"), "PNG", 0, 0, pageW, (sliceH * pageW) / canvas.width);
+    first = false;
+    y += sliceH;
+  }
+  return pdf;
+}
+
 export async function downloadInvoicePdf(invoiceId: string) {
   const { canvas, invoiceNumber } = await renderInvoiceToCanvas(invoiceId);
-  const pdf = new jsPDF({ format: "a4", unit: "mm", orientation: "portrait" });
-  const w = pdf.internal.pageSize.getWidth();
-  const h = (canvas.height * w) / canvas.width;
-  pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, w, h);
+  const pdf = canvasToA4Pdf(canvas);
   pdf.save(`Faktura-${invoiceNumber.replace(/\//g, "-")}.pdf`);
 }
 

@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import InvoicePrintable from "@/components/InvoicePrintable";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { canvasToA4Pdf } from "@/lib/invoicePdf";
 
 export default function InvoiceDetail() {
   const { id } = useParams();
@@ -56,11 +57,7 @@ export default function InvoiceDetail() {
   const generatePdfBlob = async (): Promise<{ blob: Blob; filename: string } | null> => {
     if (!printRef.current) return null;
     const canvas = await html2canvas(printRef.current, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF({ format: "a4", unit: "mm", orientation: "portrait" });
-    const w = pdf.internal.pageSize.getWidth();
-    const h = (canvas.height * w) / canvas.width;
-    pdf.addImage(imgData, "PNG", 0, 0, w, h);
+    const pdf = canvasToA4Pdf(canvas);
     const filename = `Faktura-${invoice.invoice_number.replace(/\//g, "-")}.pdf`;
     return { blob: pdf.output("blob"), filename };
   };
