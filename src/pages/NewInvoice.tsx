@@ -71,7 +71,14 @@ export default function NewInvoice() {
     );
   }
 
-  const subtotal = items.reduce((s, r) => s + Number(r.quantity || 0) * Number(r.unit_price || 0), 0);
+  const parseNum = (s: string) => {
+    if (s === null || s === undefined) return 0;
+    const cleaned = String(s).replace(/\s/g, "").replace(/\./g, "").replace(",", ".");
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const subtotal = items.reduce((s, r) => s + parseNum(r.quantity) * parseNum(r.unit_price), 0);
 
   const updateRow = (id: string, patch: Partial<ItemRow>) =>
     setItems(items.map(r => r.id === id ? { ...r, ...patch } : r));
@@ -82,6 +89,8 @@ export default function NewInvoice() {
     if (!organization) return;
     if (!clientId) return toast.error("Odaberite klijenta");
     if (items.some(r => !r.description.trim())) return toast.error("Sve stavke moraju imati opis");
+    if (items.some(r => parseNum(r.quantity) <= 0)) return toast.error("Količina mora biti veća od nule");
+    if (items.some(r => parseNum(r.unit_price) < 0)) return toast.error("Cijena ne smije biti negativna");
     if (subtotal <= 0) return toast.error("Iznos mora biti veći od nule");
 
     setSaving(true);
@@ -113,10 +122,10 @@ export default function NewInvoice() {
         invoice_id: inv.id,
         position: idx + 1,
         description: r.description.trim(),
-        quantity: Number(r.quantity),
+        quantity: parseNum(r.quantity),
         unit: r.unit || "kom",
-        unit_price: Number(r.unit_price),
-        total: Number(r.quantity) * Number(r.unit_price),
+        unit_price: parseNum(r.unit_price),
+        total: parseNum(r.quantity) * parseNum(r.unit_price),
       })) as any
     );
     if (itErr) { setSaving(false); return toast.error(itErr.message); }
@@ -183,7 +192,7 @@ export default function NewInvoice() {
               </div>
               <div className="col-span-3 sm:col-span-2 space-y-1">
                 {idx === 0 && <Label className="text-xs">Količina</Label>}
-                <Input type="number" step="0.01" value={r.quantity} onChange={e => updateRow(r.id, { quantity: e.target.value })} />
+                <Input type="number" min="0" step="0.01" value={r.quantity} onChange={e => updateRow(r.id, { quantity: e.target.value })} />
               </div>
               <div className="col-span-3 sm:col-span-1 space-y-1">
                 {idx === 0 && <Label className="text-xs">JM</Label>}
@@ -191,10 +200,10 @@ export default function NewInvoice() {
               </div>
               <div className="col-span-4 sm:col-span-2 space-y-1">
                 {idx === 0 && <Label className="text-xs">Cijena</Label>}
-                <Input type="number" step="0.01" value={r.unit_price} onChange={e => updateRow(r.id, { unit_price: e.target.value })} />
+                <Input type="number" min="0" step="0.01" value={r.unit_price} onChange={e => updateRow(r.id, { unit_price: e.target.value })} />
               </div>
               <div className="col-span-2 sm:col-span-1 text-right text-sm font-medium tabular-nums">
-                {formatKM(Number(r.quantity || 0) * Number(r.unit_price || 0))}
+                {formatKM(parseNum(r.quantity) * parseNum(r.unit_price))}
               </div>
               <div className="col-span-12 sm:col-span-1 flex justify-end">
                 <Button variant="ghost" size="icon" onClick={() => removeRow(r.id)} disabled={items.length === 1}>
