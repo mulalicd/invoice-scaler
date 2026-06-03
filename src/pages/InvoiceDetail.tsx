@@ -16,7 +16,7 @@ import html2canvas from "html2canvas";
 export default function InvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { organization, isAdmin } = useAuth();
+  const { organization, isAdmin, canWrite } = useAuth();
   const [invoice, setInvoice] = useState<any>(null);
   const [items, setItems] = useState<any[]>([]);
   const [client, setClient] = useState<any>(null);
@@ -39,12 +39,14 @@ export default function InvoiceDetail() {
   useEffect(() => { load(); }, [id]);
 
   const updateStatus = async (status: string) => {
+    if (!canWrite) return toast.error("Nemate ovlaštenje za izmjenu statusa");
     const { error } = await supabase.from("invoices").update({ status: status as any }).eq("id", id!);
     if (error) return toast.error(error.message);
     toast.success("Status ažuriran"); load();
   };
 
   const remove = async () => {
+    if (!canWrite) return toast.error("Nemate ovlaštenje za brisanje");
     if (!confirm(`Obrisati fakturu ${invoice.invoice_number}?`)) return;
     const { error } = await supabase.from("invoices").delete().eq("id", id!);
     if (error) return toast.error(error.message);
@@ -77,6 +79,7 @@ export default function InvoiceDetail() {
   };
 
   const sendEmail = async () => {
+    if (!canWrite) return toast.error("Nemate ovlaštenje za slanje");
     if (!client?.email) return toast.error("Klijent nema email adresu");
     if (!confirm(`Poslati fakturu na ${client.email}?`)) return;
     setEmailBusy(true);
@@ -126,7 +129,7 @@ export default function InvoiceDetail() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Select value={invoice.status} onValueChange={updateStatus}>
+          <Select value={invoice.status} onValueChange={updateStatus} disabled={!canWrite}>
             <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="draft">Nacrt</SelectItem>
@@ -135,6 +138,15 @@ export default function InvoiceDetail() {
               <SelectItem value="cancelled">Otkazana</SelectItem>
             </SelectContent>
           </Select>
+          <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="w-4 h-4 mr-2" />Print</Button>
+          <Button variant="outline" size="sm" onClick={downloadPdf} disabled={pdfBusy}>
+            {pdfBusy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}PDF
+          </Button>
+          {canWrite && (
+            <Button size="sm" onClick={sendEmail} disabled={emailBusy || !client?.email}>
+              {emailBusy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}Pošalji email
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="w-4 h-4 mr-2" />Print</Button>
           <Button variant="outline" size="sm" onClick={downloadPdf} disabled={pdfBusy}>
             {pdfBusy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}PDF
