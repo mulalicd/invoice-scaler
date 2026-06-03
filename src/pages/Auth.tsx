@@ -42,7 +42,8 @@ export default function Auth() {
       emailSchema.parse(siEmail);
       passwordSchema.parse(siPwd);
     } catch (err) {
-      if (err instanceof z.ZodError) return toast.error(err.errors[0].message);
+      if (err instanceof z.ZodError) { toast.error(err.errors[0].message); return; }
+      toast.error("Neispravan unos"); return;
     }
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email: siEmail, password: siPwd });
@@ -60,7 +61,8 @@ export default function Auth() {
       emailSchema.parse(suEmail);
       passwordSchema.parse(suPwd);
     } catch (err) {
-      if (err instanceof z.ZodError) return toast.error(err.errors[0].message);
+      if (err instanceof z.ZodError) { toast.error(err.errors[0].message); return; }
+      toast.error("Neispravan unos"); return;
     }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
