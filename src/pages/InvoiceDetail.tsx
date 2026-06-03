@@ -147,13 +147,6 @@ export default function InvoiceDetail() {
               {emailBusy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}Pošalji email
             </Button>
           )}
-          <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="w-4 h-4 mr-2" />Print</Button>
-          <Button variant="outline" size="sm" onClick={downloadPdf} disabled={pdfBusy}>
-            {pdfBusy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}PDF
-          </Button>
-          <Button size="sm" onClick={sendEmail} disabled={emailBusy || !client?.email}>
-            {emailBusy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}Pošalji email
-          </Button>
           {isAdmin && (
             <Button variant="ghost" size="sm" onClick={remove}><Trash2 className="w-4 h-4 text-destructive" /></Button>
           )}
