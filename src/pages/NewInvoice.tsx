@@ -44,7 +44,13 @@ export default function NewInvoice() {
   const [saving, setSaving] = useState(false);
 
   const dueDays = organization?.default_payment_days ?? 15;
-  const dueDate = new Date(new Date(issueDate).getTime() + dueDays * 86400000).toISOString().slice(0, 10);
+  // TZ-safe: parsiramo YYYY-MM-DD u UTC podne i dodajemo dane, izbjegavamo DST shift.
+  const dueDate = (() => {
+    const [y, m, d] = issueDate.split("-").map(Number);
+    const base = new Date(Date.UTC(y, (m || 1) - 1, d || 1, 12));
+    base.setUTCDate(base.getUTCDate() + dueDays);
+    return base.toISOString().slice(0, 10);
+  })();
 
   useEffect(() => {
     if (!canWrite) return;

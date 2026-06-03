@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, KeyRound, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
+import { validatePassword, PASSWORD_RULES_TEXT } from "@/lib/passwordPolicy";
 
 export default function ForcePasswordChange() {
   const { profile, refresh, signOut } = useAuth();
@@ -16,9 +17,8 @@ export default function ForcePasswordChange() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pwd.length < 10) return toast.error("Lozinka mora imati minimalno 10 karaktera");
-    if (!/[A-Z]/.test(pwd) || !/[0-9]/.test(pwd)) return toast.error("Lozinka mora sadržavati veliko slovo i broj");
-    if (pwd !== pwd2) return toast.error("Lozinke se ne podudaraju");
+    const check = validatePassword(pwd, pwd2);
+    if (!check.ok) return toast.error(check.error!);
     setBusy(true);
     const { error } = await supabase.auth.updateUser({ password: pwd });
     if (error) { setBusy(false); return toast.error(error.message); }
@@ -48,7 +48,8 @@ export default function ForcePasswordChange() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Nova lozinka</Label>
-              <Input type="password" value={pwd} onChange={e => setPwd(e.target.value)} placeholder="min. 10 karaktera, veliko slovo + broj" required />
+              <Input type="password" value={pwd} onChange={e => setPwd(e.target.value)} placeholder={PASSWORD_RULES_TEXT} required />
+              <p className="text-xs text-muted-foreground">{PASSWORD_RULES_TEXT}</p>
             </div>
             <div className="space-y-2">
               <Label>Potvrdi lozinku</Label>

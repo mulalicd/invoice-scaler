@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Building2, Users as UsersIcon, ShieldCheck, KeyRound } from "lucide-react";
 import { toast } from "sonner";
+import { validatePassword, PASSWORD_RULES_TEXT } from "@/lib/passwordPolicy";
 
 export default function Settings() {
   const { organization, isAdmin, isSuperadmin, refresh, profile } = useAuth();
@@ -21,8 +22,8 @@ export default function Settings() {
   const [pwdSaving, setPwdSaving] = useState(false);
 
   const changePassword = async () => {
-    if (pwd.length < 8) return toast.error("Lozinka mora imati min. 8 karaktera");
-    if (pwd !== pwd2) return toast.error("Lozinke se ne podudaraju");
+    const check = validatePassword(pwd, pwd2);
+    if (!check.ok) return toast.error(check.error!);
     setPwdSaving(true);
     const { error } = await supabase.auth.updateUser({ password: pwd });
     setPwdSaving(false);
@@ -217,7 +218,7 @@ export default function Settings() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Nova lozinka</Label>
-                <Input type="password" value={pwd} onChange={e => setPwd(e.target.value)} placeholder="min. 8 karaktera" />
+                <Input type="password" value={pwd} onChange={e => setPwd(e.target.value)} placeholder={PASSWORD_RULES_TEXT} />
               </div>
               <div className="space-y-2">
                 <Label>Potvrdi novu lozinku</Label>

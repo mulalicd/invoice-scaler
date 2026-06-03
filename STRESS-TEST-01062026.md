@@ -10,25 +10,28 @@
 
 > ✅ **03.06.2026 — Hotfix wave 1:** P0 stavke A1, A5, A6, B1, B2, B3, D1 zatvorene (Auth zod return-i, viewer UI gating na InvoiceDetail, validacija negativnih i parsing zareza u NewInvoice, unique index na (org, invoice_number) i (org, year, seq), multi-page A4 paginacija PDF-a).
 
+
+> ✅ **03.06.2026 — Hotfix wave 2:** A2 (uklonjen Registracija tab + disable_signup na backend-u), A3 (centralizirana password politika u `lib/passwordPolicy.ts`: 12+ znakova, upper/lower/digit/symbol), A4 (HIBP uključen), A7 (REVOKE EXECUTE na pure-helper SECURITY DEFINER funkcijama — RLS i dalje radi jer ih Postgres izvršava interno), A9 (trigger `protect_profile_columns` sprječava admin-promjenu tuđeg email/id-a), A10 (admin više ne može UPDATE/DELETE reda sa superadmin ulogom u user_roles), B4 (TZ-safe izračun rok plaćanja), C1 (null-safe filter u Invoices). Preostale linter WARN-e za RPC funkcije (`admin_set_user_role`, `claim_organization`, `next_invoice_number`, `bulk_import_*`, `switch_active_organization`, `log_client_error`, `wipe_org_data`, `get_organizations_for_onboarding`) je opravdano ostaviti: one moraju biti pozivne sa autentificiranog klijenta i interno provjeravaju ovlasti.
+
 ---
 
 ## 🔴 BLOK A — SIGURNOST, AUTH & RLS (najviši prioritet)
 
 - [x] **A1 [P0]** ✅ FIXED 03.06.2026 — `Auth.tsx` — *signup zod validation bug*: u `handleSignIn`/`handleSignUp` blokovi `catch (err) { if (err instanceof z.ZodError) return toast.error(...) }` **ne sadrže `return` izvan if-a** — kad validacija ne uspije, kod nastavlja i poziva `supabase.auth.signUp` sa pogrešnim podacima. Premjestiti validaciju izvan try/catch ili dodati eksplicitan `return` u svim granama.
-- [ ] **A2 [P0]** *Onemogućiti samostalnu registraciju u UI-u.* Politika je whitelist (3 korisnika) — Tab "Registracija" na `/auth` mora biti **uklonjen ili sakriven**, jer `handle_new_user` trigger ionako odbija sve van whitelist-a → korisnik dobije zbunjujuću grešku. Ostaviti samo Sign-In tab + "Zaboravljena lozinka".
-- [ ] **A3 [P0]** *Nekonzistentna password politika:*  
+- [x] **A2 [P0]** ✅ FIXED 03.06.2026 — *Onemogućiti samostalnu registraciju u UI-u.* Politika je whitelist (3 korisnika) — Tab "Registracija" na `/auth` mora biti **uklonjen ili sakriven**, jer `handle_new_user` trigger ionako odbija sve van whitelist-a → korisnik dobije zbunjujuću grešku. Ostaviti samo Sign-In tab + "Zaboravljena lozinka".
+- [x] **A3 [P0]** ✅ FIXED 03.06.2026 — *Nekonzistentna password politika:*  
   • `Auth.tsx` zahtijeva 8 znakova  
   • `ResetPassword.tsx` zahtijeva 8 znakova  
   • `Settings.tsx → changePassword` 8 znakova  
   • `ForcePasswordChange.tsx` zahtijeva 10 + veliko slovo + broj  
   → Centralizirati u `lib/passwordPolicy.ts` (min 12, A-Z, a-z, 0-9, simbol) i koristiti svuda.
-- [ ] **A4 [P0]** *Leaked password protection (HIBP).* Uključiti `password_hibp_enabled: true` preko `configure_auth`. Trenutno isključeno → privremene lozinke iz `seed-users` mogu biti u poznatim leak listama.
+- [x] **A4 [P0]** ✅ FIXED 03.06.2026 — *Leaked password protection (HIBP).* Uključiti `password_hibp_enabled: true` preko `configure_auth`. Trenutno isključeno → privremene lozinke iz `seed-users` mogu biti u poznatim leak listama.
 - [x] **A5 [P0]** ✅ FIXED 03.06.2026 — *`InvoiceDetail.tsx` — viewer može mijenjati status fakture.* `<Select value={invoice.status} onValueChange={updateStatus}>` nije gated na `canWrite`. Iako RLS server-side blokira, UI ne smije ni nuditi opciju. Dodati `isViewer` provjeru.
 - [x] **A6 [P0]** ✅ FIXED 03.06.2026 — *`InvoiceDetail.tsx` — viewer može pozvati `sendEmail` i `downloadPdf`.* Slanje emaila je *write action* (komunikacija sa klijentom). Mora biti `canWrite` only. PDF download ostaje dozvoljen viewer-u (izvoz).
-- [ ] **A7 [P0]** *Supabase Linter — 10 WARN:* "Signed-In Users Can Execute SECURITY DEFINER Function". Provjeriti SVE `SECURITY DEFINER` funkcije, suziti `EXECUTE` privilegije (REVOKE FROM `public`, GRANT samo gdje treba) ili prebaciti pomoćne funkcije na `SECURITY INVOKER`. Lista: `has_role`, `has_role_or_super`, `is_superadmin`, `is_member_of_org`, `get_active_org`, `next_invoice_number`, `admin_set_user_role`, `claim_organization`, `wipe_org_data`, `bulk_import_invoices_detailed`, `log_client_error`, `switch_active_organization`, `get_organizations_for_onboarding`, `handle_new_user`.
+- [x] **A7 [P0]** ✅ FIXED 03.06.2026 — *Supabase Linter — 10 WARN:* "Signed-In Users Can Execute SECURITY DEFINER Function". Provjeriti SVE `SECURITY DEFINER` funkcije, suziti `EXECUTE` privilegije (REVOKE FROM `public`, GRANT samo gdje treba) ili prebaciti pomoćne funkcije na `SECURITY INVOKER`. Lista: `has_role`, `has_role_or_super`, `is_superadmin`, `is_member_of_org`, `get_active_org`, `next_invoice_number`, `admin_set_user_role`, `claim_organization`, `wipe_org_data`, `bulk_import_invoices_detailed`, `log_client_error`, `switch_active_organization`, `get_organizations_for_onboarding`, `handle_new_user`.
 - [ ] **A8 [P1]** *`OnboardingScreen.tsx` poziva `claim_organization` koji može automatski dodjeljivati admin/accountant ulogu* — to zaobilazi whitelist filozofiju. Verificirati RPC implementaciju: za 3 whitelist korisnika role moraju biti **pre-seed-ane** u migraciji, a OnboardingScreen prikazivati samo "Odaberi aktivnu organizaciju" (bez claim akcije).
-- [ ] **A9 [P1]** *`profiles` RLS update policy* — "Admins update profiles in their org" dozvoljava admin-u da mijenja bilo koji profil u svojoj org (uključujući email/ime drugog admina). Dodati WITH CHECK koji sprječava promjenu `id`, `email`, `must_change_password` osim kroz dedicated RPC.
-- [ ] **A10 [P1]** *`user_roles` UPDATE policy* — admin može promijeniti rolu superadmina (`USING` provjera prolazi za bilo koju rolu, samo `WITH CHECK role <> 'superadmin'` štiti). Treba i `USING (role <> 'superadmin')` da admin uopće ne može modificirati superadmin redove.
+- [x] **A9 [P1]** ✅ FIXED 03.06.2026 — *`profiles` RLS update policy* — "Admins update profiles in their org" dozvoljava admin-u da mijenja bilo koji profil u svojoj org (uključujući email/ime drugog admina). Dodati WITH CHECK koji sprječava promjenu `id`, `email`, `must_change_password` osim kroz dedicated RPC.
+- [x] **A10 [P1]** ✅ FIXED 03.06.2026 — *`user_roles` UPDATE policy* — admin može promijeniti rolu superadmina (`USING` provjera prolazi za bilo koju rolu, samo `WITH CHECK role <> 'superadmin'` štiti). Treba i `USING (role <> 'superadmin')` da admin uopće ne može modificirati superadmin redove.
 - [ ] **A11 [P1]** *Audit log nepotpun.* CREATE/UPDATE/DELETE na `invoices`, `clients`, `user_roles`, `organizations` trebaju imati BEFORE/AFTER triggere koji upisuju u `audit_log` automatski (trenutno ovisi o manualnim pozivima). Dodati `tg_audit_*` triggere.
 - [ ] **A12 [P1]** *Bez rate-limit / brute-force zaštite na login.* Implementirati edge function "login-throttle" ili koristiti Supabase Auth attack protection u dashboard postavkama.
 - [ ] **A13 [P2]** *Tokeni u `localStorage`* (`supabase/client.ts`) — XSS rizik. Dodati strogi CSP header u `index.html`, ukloniti inline `<script>` tagove tamo gdje je moguće.
@@ -42,7 +45,7 @@
 - [x] **B1 [P0]** ✅ FIXED 03.06.2026 — *Negativna količina/cijena prolazi.* `NewInvoice.tsx` ne validira `quantity > 0` ni `unit_price >= 0`. Korisnik može unijeti `-5 × 100 KM` i kreirati fakturu sa minus iznosom. Dodati zod schemu.
 - [x] **B2 [P0]** ✅ FIXED 03.06.2026 — *Decimalni separator za uneseni broj.* Bosanski korisnik prirodno unosi "919,16" — `Number("919,16") = NaN` → tiha greška, total ispadne 0 i čak prolazi (jer `subtotal <= 0` toast, ali na ivici). Dodati `parseLocalNumber()` helper i koristiti svuda.
 - [x] **B3 [P0]** ✅ FIXED 03.06.2026 — *Race condition kod izdavanja fakture* — između `next_invoice_number` RPC i `INSERT invoices` postoji prozor u kojem dva korisnika mogu dobiti isti broj. RPC mora **u istoj transakciji** inkrementirati i vratiti broj + uraditi insert (zatvoriti u SECURITY DEFINER RPC `create_invoice_atomic`).
-- [ ] **B4 [P0]** *`due_date` se računa u JS-u (`new Date(issueDate).getTime() + days*86400000`)* — DST i timezone-shift mogu dati pogrešan dan. Računati server-side preko `issue_date + INTERVAL '_ days'`.
+- [x] **B4 [P0]** ✅ FIXED 03.06.2026 — *`due_date` se računa u JS-u (`new Date(issueDate).getTime() + days*86400000`)* — DST i timezone-shift mogu dati pogrešan dan. Računati server-side preko `issue_date + INTERVAL '_ days'`.
 - [ ] **B5 [P1]** *Nema statusa `overdue`.* Sve "izdano" + `due_date < today` → trenutno se prikazuje kao samo "Izdana". Dodati derived status (CASE u view) i bojati crveno na Dashboard / Invoices listi.
 - [ ] **B6 [P1]** *Nema modela uplata (`payments` tabela).* Trenutno samo flag `paid` — nema datuma plaćanja, iznosa, instrumenta. Bez ovoga "plaćeno (ukupno)" KPI nije revizijski upotrebljiv.
 - [ ] **B7 [P1]** *PDV uvijek 0% u `InvoicePrintable`.* Ako u budućnosti budete obveznik PDV-a, model fakture treba `tax_rate`, `tax_amount` i `discount` polja po stavci.
@@ -59,7 +62,7 @@
 
 ## 🟡 BLOK C — UI / UX / FILTERI / SEARCH / STATS
 
-- [ ] **C1 [P0]** *`Invoices.tsx` filter — null-safe bug.* `i.invoice_number.toLowerCase()` puca ako broj null. Iako u shemi NOT NULL, defenzivno dodati `?.toLowerCase() ?? ""`.
+- [x] **C1 [P0]** ✅ FIXED 03.06.2026 — *`Invoices.tsx` filter — null-safe bug.* `i.invoice_number.toLowerCase()` puca ako broj null. Iako u shemi NOT NULL, defenzivno dodati `?.toLowerCase() ?? ""`.
 - [ ] **C2 [P0]** *Dashboard "Ovaj mjesec" / "Godina"* — koristi ISO string compare. Korektno za UTC ali u BA timezone-u (+1/+2 ljeti) prvi dan mjeseca može pogrešno klasificirati fakturu izdanu u 23:30 lokalno. Računati granice u **Europe/Sarajevo** vremenu (`Intl.DateTimeFormat`).
 - [ ] **C3 [P0]** *Dashboard učitava SVE fakture* (nema limita, nema agregacije). Sa 5000+ faktura → spor pageload + bandwidth. Premjestiti agregacije u `dashboard_stats(_org_id, _from, _to)` SQL RPC.
 - [ ] **C4 [P1]** *Nema paginacije nigdje.* `Invoices.tsx`, `Clients.tsx` učitavaju sve. Limit Supabase = 1000, pa 1001-i ne vidite. Dodati paginated query + UI "Učitaj još".

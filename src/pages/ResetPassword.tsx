@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { KeyRound, Loader2 } from "lucide-react";
+import { validatePassword, PASSWORD_RULES_TEXT } from "@/lib/passwordPolicy";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -25,8 +26,8 @@ export default function ResetPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pwd.length < 8) return toast.error("Lozinka mora imati min. 8 karaktera");
-    if (pwd !== pwd2) return toast.error("Lozinke se ne podudaraju");
+    const check = validatePassword(pwd, pwd2);
+    if (!check.ok) return toast.error(check.error!);
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password: pwd });
     setLoading(false);
@@ -48,7 +49,7 @@ export default function ResetPassword() {
         <Card className="shadow-elegant border-border/40">
           <CardHeader>
             <CardTitle>Postavite novu lozinku</CardTitle>
-            <CardDescription>Min. 8 karaktera.</CardDescription>
+            <CardDescription>{PASSWORD_RULES_TEXT}</CardDescription>
           </CardHeader>
           <CardContent>
             {!ready ? (
