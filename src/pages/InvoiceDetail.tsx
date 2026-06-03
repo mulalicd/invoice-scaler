@@ -12,11 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import InvoicePrintable from "@/components/InvoicePrintable";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { canvasToA4Pdf } from "@/lib/invoicePdf";
 
 export default function InvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { organization, isAdmin } = useAuth();
+  const { organization, isAdmin, canWrite } = useAuth();
   const [invoice, setInvoice] = useState<any>(null);
   const [items, setItems] = useState<any[]>([]);
   const [client, setClient] = useState<any>(null);
@@ -39,12 +40,14 @@ export default function InvoiceDetail() {
   useEffect(() => { load(); }, [id]);
 
   const updateStatus = async (status: string) => {
+    if (!canWrite) return toast.error("Nemate ovlaštenje za izmjenu statusa");
     const { error } = await supabase.from("invoices").update({ status: status as any }).eq("id", id!);
     if (error) return toast.error(error.message);
     toast.success("Status ažuriran"); load();
   };
 
   const remove = async () => {
+    if (!canWrite) return toast.error("Nemate ovlaštenje za brisanje");
     if (!confirm(`Obrisati fakturu ${invoice.invoice_number}?`)) return;
     const { error } = await supabase.from("invoices").delete().eq("id", id!);
     if (error) return toast.error(error.message);
@@ -54,11 +57,7 @@ export default function InvoiceDetail() {
   const generatePdfBlob = async (): Promise<{ blob: Blob; filename: string } | null> => {
     if (!printRef.current) return null;
     const canvas = await html2canvas(printRef.current, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF({ format: "a4", unit: "mm", orientation: "portrait" });
-    const w = pdf.internal.pageSize.getWidth();
-    const h = (canvas.height * w) / canvas.width;
-    pdf.addImage(imgData, "PNG", 0, 0, w, h);
+    const pdf = canvasToA4Pdf(canvas);
     const filename = `Faktura-${invoice.invoice_number.replace(/\//g, "-")}.pdf`;
     return { blob: pdf.output("blob"), filename };
   };
@@ -77,6 +76,7 @@ export default function InvoiceDetail() {
   };
 
   const sendEmail = async () => {
+    if (!canWrite) return toast.error("Nemate ovlaštenje za slanje");
     if (!client?.email) return toast.error("Klijent nema email adresu");
     if (!confirm(`Poslati fakturu na ${client.email}?`)) return;
     setEmailBusy(true);
@@ -126,7 +126,7 @@ export default function InvoiceDetail() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Select value={invoice.status} onValueChange={updateStatus}>
+          <Select value={invoice.status} onValueChange={updateStatus} disabled={!canWrite}>
             <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="draft">Nacrt</SelectItem>
@@ -139,9 +139,11 @@ export default function InvoiceDetail() {
           <Button variant="outline" size="sm" onClick={downloadPdf} disabled={pdfBusy}>
             {pdfBusy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}PDF
           </Button>
-          <Button size="sm" onClick={sendEmail} disabled={emailBusy || !client?.email}>
-            {emailBusy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}Pošalji email
-          </Button>
+          {canWrite && (
+            <Button size="sm" onClick={sendEmail} disabled={emailBusy || !client?.email}>
+              {emailBusy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}Pošalji email
+            </Button>
+          )}
           {isAdmin && (
             <Button variant="ghost" size="sm" onClick={remove}><Trash2 className="w-4 h-4 text-destructive" /></Button>
           )}
