@@ -6,15 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { FileText, Loader2 } from "lucide-react";
+import { FileText, Loader2, ShieldCheck } from "lucide-react";
 import { lazy, Suspense } from "react";
 const AuthScene = lazy(() => import("@/components/three/AuthScene"));
 
 const emailSchema = z.string().trim().email("Neispravna email adresa").max(255);
-const passwordSchema = z.string().min(8, "Minimalno 8 karaktera").max(72);
-const nameSchema = z.string().trim().min(1, "Obavezno polje").max(80);
+const passwordSchema = z.string().min(1, "Unesite lozinku").max(72);
 
 export default function Auth() {
   const navigate = useNavigate();
