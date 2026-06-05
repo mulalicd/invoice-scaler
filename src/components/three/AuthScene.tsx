@@ -31,16 +31,11 @@ function Coin({ position, label, color }: { position: [number, number, number]; 
           <ringGeometry args={[0.42, 0.5, 48]} />
           <meshStandardMaterial color="#fff8d6" metalness={0.6} roughness={0.4} side={THREE.DoubleSide} />
         </mesh>
-        <Text
-          position={[0, 0.05, 0]}
-          rotation={[-Math.PI / 2, 0, 0]}
-          fontSize={0.36}
-          color="#5a3b00"
-          anchorX="center"
-          anchorY="middle"
-        >
-          {label}
-        </Text>
+        <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.22, 0.04, 16, 32]} />
+          <meshStandardMaterial color="#5a3b00" metalness={0.7} roughness={0.3} />
+        </mesh>
+
       </group>
     </Float>
   );
