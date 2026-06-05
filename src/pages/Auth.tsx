@@ -8,8 +8,16 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { FileText, Loader2, ShieldCheck } from "lucide-react";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, Component, ReactNode } from "react";
 const AuthScene = lazy(() => import("@/components/three/AuthScene"));
+
+class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch(err: any) { console.warn("[AuthScene] disabled:", err?.message); }
+  render() { return this.state.failed ? null : this.props.children; }
+}
+
 
 const emailSchema = z.string().trim().email("Neispravna email adresa").max(255);
 const passwordSchema = z.string().min(1, "Unesite lozinku").max(72);
