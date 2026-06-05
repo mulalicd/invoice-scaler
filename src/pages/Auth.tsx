@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Component, ReactNode, useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,13 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { FileText, Loader2, ShieldCheck } from "lucide-react";
-import { lazy, Suspense, Component, ReactNode } from "react";
-const AuthScene = lazy(() => import("@/components/three/AuthScene"));
+import AuthScene from "@/components/three/AuthScene";
+import { reportClientError } from "@/lib/errorLogger";
 
 class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
-  componentDidCatch(err: any) { console.warn("[AuthScene] disabled:", err?.message); }
+  componentDidCatch(err: any) { reportClientError(err?.message ?? "Auth scene failed", "AuthScene", err?.stack); }
   render() { return this.state.failed ? null : this.props.children; }
 }
 
@@ -47,18 +47,19 @@ export default function Auth() {
     const { error } = await supabase.auth.signInWithPassword({ email: siEmail, password: siPwd });
     setLoading(false);
     if (error) {
+      reportClientError(error.message, "Auth.signInWithPassword", undefined, { email: siEmail, status: error.status, code: error.code });
       return toast.error(
         error.message === "Invalid login credentials" ? "Neispravan email ili lozinka" : error.message
       );
     }
     toast.success("Prijava uspješna");
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden bg-gradient-to-br from-[hsl(220,40%,8%)] via-[hsl(213,60%,18%)] to-[hsl(220,40%,8%)]">
       <div className="absolute inset-0 opacity-90">
-        <SceneBoundary><Suspense fallback={null}><AuthScene /></Suspense></SceneBoundary>
+        <SceneBoundary><AuthScene /></SceneBoundary>
       </div>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(220,40%,8%)_85%)] pointer-events-none" />
       <div className="w-full max-w-md space-y-6 animate-fade-in relative z-10">

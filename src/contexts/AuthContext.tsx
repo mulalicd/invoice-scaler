@@ -1,6 +1,8 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { reportClientError } from "@/lib/errorLogger";
+import { runAuthRlsProbe } from "@/lib/authRlsProbe";
 
 interface Profile {
   id: string;
@@ -35,6 +37,7 @@ interface AuthContextValue {
   roleEntries: RoleEntry[];
   roles: Role[];
   loading: boolean;
+  authError: string | null;
   isAdmin: boolean;
   isSuperadmin: boolean;
   isViewer: boolean;
@@ -54,34 +57,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [roleEntries, setRoleEntries] = useState<RoleEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const loadSeq = useRef(0);
 
   const loadUserData = async (userId: string) => {
-    const [{ data: prof }, { data: rolesData }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
-      supabase.from("user_roles").select("role, organization_id").eq("user_id", userId),
-    ]);
-    setProfile(prof as Profile | null);
-    const entries = (rolesData ?? []).map((r: any) => ({ role: r.role as Role, organization_id: r.organization_id }));
-    setRoleEntries(entries);
-
-    const isSuper = entries.some(r => r.role === "superadmin");
-    let orgIds = entries.map(r => r.organization_id).filter(Boolean) as string[];
-
-    let orgsQuery = supabase.from("organizations").select("*");
-    if (!isSuper) orgsQuery = orgsQuery.in("id", orgIds.length ? orgIds : ["00000000-0000-0000-0000-000000000000"]);
-    const { data: orgs } = await orgsQuery.order("code");
-    setOrganizations((orgs ?? []) as Organization[]);
-
-    const activeId = (prof as any)?.active_organization_id || (prof as any)?.organization_id;
-    const active = (orgs ?? []).find((o: any) => o.id === activeId) || (orgs ?? [])[0] || null;
-    setOrganization(active as Organization | null);
+    const seq = ++loadSeq.current;
+    try {
+      setAuthError(null);
+      const result = await runAuthRlsProbe(supabase, userId);
+      if (seq !== loadSeq.current) return;
+      setProfile(result.profile as Profile | null);
+      setRoleEntries(result.roleEntries as RoleEntry[]);
+      setOrganizations(result.organizations as Organization[]);
+      setOrganization(result.activeOrganization as Organization | null);
+    } catch (error: any) {
+      if (seq !== loadSeq.current) return;
+      const message = error?.message ?? "Dohvat profila, uloga ili organizacija nije uspio.";
+      setAuthError(message);
+      await reportClientError(message, "AuthContext.loadUserData", error?.stack, { failures: error?.failures ?? null, userId });
+    }
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
       setSession(sess); setUser(sess?.user ?? null);
-      if (sess?.user) setTimeout(() => loadUserData(sess.user.id), 0);
-      else { setProfile(null); setOrganization(null); setOrganizations([]); setRoleEntries([]); }
+      if (sess?.user && event !== "INITIAL_SESSION") {
+        setLoading(true);
+        setTimeout(() => loadUserData(sess.user.id).finally(() => setLoading(false)), 0);
+      }
+      else { loadSeq.current++; setProfile(null); setOrganization(null); setOrganizations([]); setRoleEntries([]); setAuthError(null); setLoading(false); }
     });
     supabase.auth.getSession().then(({ data: { session: sess } }) => {
       setSession(sess); setUser(sess?.user ?? null);
@@ -111,7 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AuthContext.Provider value={{
       user, session, profile, organization, organizations, roleEntries, roles, loading,
-      isAdmin, isSuperadmin, isViewer, canWrite, switchOrg, signOut, refresh,
+      authError, isAdmin, isSuperadmin, isViewer, canWrite, switchOrg, signOut, refresh,
     }}>
       {children}
     </AuthContext.Provider>

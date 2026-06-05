@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { FileText, Users, TrendingUp, Plus, ArrowUpRight, Receipt, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { FileText, Users, TrendingUp, Plus, ArrowUpRight, Receipt, Clock, CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react";
 import { formatKM, formatDate } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
+import { reportSupabaseError } from "@/lib/errorLogger";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
   PieChart, Pie, Cell, Legend, BarChart, Bar
@@ -28,17 +29,26 @@ export default function Dashboard() {
   const [invs, setInvs] = useState<any[]>([]);
   const [clientCount, setClientCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!organization) return;
     setLoading(true);
+    setErrorMessage(null);
     (async () => {
-      const [{ data: rows }, { count }] = await Promise.all([
+      const [{ data: rows, error: invoicesError }, { count, error: clientsError }] = await Promise.all([
         supabase.from("invoices")
           .select("id, invoice_number, total, status, issue_date, client_id, clients(name)")
           .order("issue_date", { ascending: false }),
         supabase.from("clients").select("*", { count: "exact", head: true }),
       ]);
+      if (invoicesError || clientsError) {
+        const err = invoicesError ?? clientsError;
+        setErrorMessage(err?.message ?? "Dashboard podaci se nisu mogli učitati.");
+        await reportSupabaseError("Dashboard.loadData", err, { organizationId: organization.id });
+        setLoading(false);
+        return;
+      }
       setInvs(rows ?? []);
       setClientCount(count ?? 0);
       setLoading(false);
@@ -122,6 +132,21 @@ export default function Dashboard() {
           </Button>
         )}
       </div>
+
+      {errorMessage && (
+        <Card className="border-destructive/40 bg-destructive/5">
+          <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+            <div className="flex gap-3 text-sm">
+              <AlertTriangle className="w-5 h-5 text-destructive shrink-0" />
+              <div>
+                <div className="font-medium">Dashboard podaci se nisu mogli učitati</div>
+                <div className="text-muted-foreground">{errorMessage}</div>
+              </div>
+            </div>
+            <Button variant="outline" onClick={() => window.location.reload()}>Osvježi</Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* KPI cards with subtle 3D tilt + gradient glow */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
