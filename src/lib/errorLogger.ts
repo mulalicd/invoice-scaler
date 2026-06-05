@@ -1,4 +1,4 @@
-import { PostgrestError } from "@supabase/supabase-js";
+import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
 type ErrorContext = Record<string, unknown> | null | undefined;
