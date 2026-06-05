@@ -1,7 +1,8 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import ErrorBoundary, { reportClientError } from "./components/ErrorBoundary";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { reportClientError } from "./lib/errorLogger";
 
 if (typeof window !== "undefined") {
   window.addEventListener("error", (e) => {
@@ -15,7 +16,7 @@ if (typeof window !== "undefined") {
 }
 
 createRoot(document.getElementById("root")!).render(
-  <ErrorBoundary>
+  <ErrorBoundary scope="AppRoot">
     <App />
   </ErrorBoundary>
 );
