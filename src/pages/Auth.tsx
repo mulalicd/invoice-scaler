@@ -8,8 +8,16 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { FileText, Loader2, ShieldCheck } from "lucide-react";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, Component, ReactNode } from "react";
 const AuthScene = lazy(() => import("@/components/three/AuthScene"));
+
+class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch(err: any) { console.warn("[AuthScene] disabled:", err?.message); }
+  render() { return this.state.failed ? null : this.props.children; }
+}
+
 
 const emailSchema = z.string().trim().email("Neispravna email adresa").max(255);
 const passwordSchema = z.string().min(1, "Unesite lozinku").max(72);
@@ -50,7 +58,7 @@ export default function Auth() {
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden bg-gradient-to-br from-[hsl(220,40%,8%)] via-[hsl(213,60%,18%)] to-[hsl(220,40%,8%)]">
       <div className="absolute inset-0 opacity-90">
-        <Suspense fallback={null}><AuthScene /></Suspense>
+        <SceneBoundary><Suspense fallback={null}><AuthScene /></Suspense></SceneBoundary>
       </div>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(220,40%,8%)_85%)] pointer-events-none" />
       <div className="w-full max-w-md space-y-6 animate-fade-in relative z-10">
