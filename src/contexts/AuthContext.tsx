@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { reportClientError } from "@/lib/errorLogger";
@@ -58,16 +58,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [roleEntries, setRoleEntries] = useState<RoleEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const loadSeq = useRef(0);
 
   const loadUserData = async (userId: string) => {
+    const seq = ++loadSeq.current;
     try {
       setAuthError(null);
       const result = await runAuthRlsProbe(supabase, userId);
+      if (seq !== loadSeq.current) return;
       setProfile(result.profile as Profile | null);
       setRoleEntries(result.roleEntries as RoleEntry[]);
       setOrganizations(result.organizations as Organization[]);
       setOrganization(result.activeOrganization as Organization | null);
     } catch (error: any) {
+      if (seq !== loadSeq.current) return;
       const message = error?.message ?? "Dohvat profila, uloga ili organizacija nije uspio.";
       setAuthError(message);
       await reportClientError(message, "AuthContext.loadUserData", error?.stack, { failures: error?.failures ?? null, userId });
@@ -77,8 +81,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess) => {
       setSession(sess); setUser(sess?.user ?? null);
-      if (sess?.user) setTimeout(() => loadUserData(sess.user.id), 0);
-      else { setProfile(null); setOrganization(null); setOrganizations([]); setRoleEntries([]); setAuthError(null); }
+      if (sess?.user) {
+        setLoading(true);
+        setTimeout(() => loadUserData(sess.user.id).finally(() => setLoading(false)), 0);
+      }
+      else { loadSeq.current++; setProfile(null); setOrganization(null); setOrganizations([]); setRoleEntries([]); setAuthError(null); setLoading(false); }
     });
     supabase.auth.getSession().then(({ data: { session: sess } }) => {
       setSession(sess); setUser(sess?.user ?? null);
