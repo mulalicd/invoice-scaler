@@ -58,7 +58,7 @@ export default function Auth() {
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden bg-gradient-to-br from-[hsl(220,40%,8%)] via-[hsl(213,60%,18%)] to-[hsl(220,40%,8%)]">
       <div className="absolute inset-0 opacity-90">
-        <Suspense fallback={null}><AuthScene /></Suspense>
+        <SceneBoundary><Suspense fallback={null}><AuthScene /></Suspense></SceneBoundary>
       </div>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(220,40%,8%)_85%)] pointer-events-none" />
       <div className="w-full max-w-md space-y-6 animate-fade-in relative z-10">
