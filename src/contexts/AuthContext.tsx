@@ -79,9 +79,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
       setSession(sess); setUser(sess?.user ?? null);
-      if (sess?.user) {
+      if (sess?.user && event !== "INITIAL_SESSION") {
         setLoading(true);
         setTimeout(() => loadUserData(sess.user.id).finally(() => setLoading(false)), 0);
       }
