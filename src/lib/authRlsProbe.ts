@@ -68,3 +68,16 @@ export async function runAuthRlsProbe(client: any, userId: string) {
     activeOrganization,
   };
 }
+
+export async function runLoginAuthRlsFlowProbe(client: any, email: string, password: string) {
+  const { data, error } = await client.auth.signInWithPassword({ email, password });
+  const loginFailure = failureFrom("login", error);
+  if (loginFailure) throw new AuthRlsProbeError([loginFailure]);
+
+  const userId = data?.user?.id;
+  if (!userId) {
+    throw new AuthRlsProbeError([{ step: "login", message: "Prijava nije vratila korisnika." }]);
+  }
+
+  return runAuthRlsProbe(client, userId);
+}
