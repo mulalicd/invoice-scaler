@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Component, ReactNode, useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,13 @@ import { toast } from "sonner";
 import { FileText, Loader2, ShieldCheck } from "lucide-react";
 import AuthScene from "@/components/three/AuthScene";
 import { reportClientError } from "@/lib/errorLogger";
+
+class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch(err: any) { reportClientError(err?.message ?? "Auth scene failed", "AuthScene", err?.stack); }
+  render() { return this.state.failed ? null : this.props.children; }
+}
 
 
 const emailSchema = z.string().trim().email("Neispravna email adresa").max(255);
@@ -52,7 +59,7 @@ export default function Auth() {
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden bg-gradient-to-br from-[hsl(220,40%,8%)] via-[hsl(213,60%,18%)] to-[hsl(220,40%,8%)]">
       <div className="absolute inset-0 opacity-90">
-        <AuthScene />
+        <SceneBoundary><AuthScene /></SceneBoundary>
       </div>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(220,40%,8%)_85%)] pointer-events-none" />
       <div className="w-full max-w-md space-y-6 animate-fade-in relative z-10">
