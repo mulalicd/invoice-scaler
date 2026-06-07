@@ -21,7 +21,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   ];
 
   const handleSwitch = async (id: string) => {
-    try { await switchOrg(id); toast.success("Aktivna ustanova promijenjena"); window.location.reload(); }
+    try { await switchOrg(id); try { sessionStorage.setItem("fakt.orgChosen", id); } catch {} toast.success("Aktivna ustanova promijenjena"); window.location.reload(); }
     catch (e: any) { toast.error(e.message); }
   };
   const [mobileOpen, setMobileOpen] = useState(false);

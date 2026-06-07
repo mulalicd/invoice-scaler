@@ -40,6 +40,7 @@ export default function Invoices() {
       const { data } = await supabase
         .from("invoices")
         .select("id, invoice_number, total, status, issue_date, due_date, period_text, clients(name, jib, jmbg)")
+        .eq("organization_id", organization.id)
         .order("issue_date", { ascending: false })
         .order("invoice_seq", { ascending: false });
       setList(data ?? []);

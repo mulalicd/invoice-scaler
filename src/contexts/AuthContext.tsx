@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await refresh();
   };
 
-  const signOut = async () => { await supabase.auth.signOut(); window.location.href = "/auth"; };
+  const signOut = async () => { try { sessionStorage.removeItem("fakt.orgChosen"); } catch {} await supabase.auth.signOut(); window.location.href = "/auth"; };
 
   const roles = roleEntries.map(r => r.role);
   const isSuperadmin = roles.includes("superadmin");

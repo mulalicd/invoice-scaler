@@ -39,8 +39,9 @@ export default function Dashboard() {
       const [{ data: rows, error: invoicesError }, { count, error: clientsError }] = await Promise.all([
         supabase.from("invoices")
           .select("id, invoice_number, total, status, issue_date, client_id, clients(name)")
+          .eq("organization_id", organization.id)
           .order("issue_date", { ascending: false }),
-        supabase.from("clients").select("*", { count: "exact", head: true }),
+        supabase.from("clients").select("*", { count: "exact", head: true }).eq("organization_id", organization.id),
       ]);
       if (invoicesError || clientsError) {
         const err = invoicesError ?? clientsError;
