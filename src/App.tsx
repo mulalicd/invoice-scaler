@@ -16,6 +16,7 @@ import NewInvoice from "./pages/NewInvoice";
 import InvoiceDetail from "./pages/InvoiceDetail";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
+import ErrorLog from "./pages/ErrorLog";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/invoices/:id" element={<ProtectedRoute><InvoiceDetail /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+            <Route path="/admin/errors" element={<ProtectedRoute><ErrorLog /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

@@ -3,7 +3,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LayoutDashboard, FileText, Users, Settings, LogOut, Building2, Menu, X, Shield, Check } from "lucide-react";
+import { LayoutDashboard, FileText, Users, Settings, LogOut, Building2, Menu, X, Shield, Check, Bug } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -18,6 +18,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     { to: "/clients", label: "Klijenti", icon: Users },
     { to: "/settings", label: "Postavke", icon: Settings },
     ...(isAdmin ? [{ to: "/admin", label: "Administracija", icon: Shield }] : []),
+    ...(isAdmin ? [{ to: "/admin/errors", label: "Dnevnik grešaka", icon: Bug }] : []),
   ];
 
   const handleSwitch = async (id: string) => {
