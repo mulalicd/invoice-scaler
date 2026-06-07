@@ -6,11 +6,12 @@ import AppLayout from "./AppLayout";
 import OnboardingScreen from "./OnboardingScreen";
 import ForcePasswordChange from "./ForcePasswordChange";
 import ErrorBoundary from "./ErrorBoundary";
+import PostLoginOrgChooser, { ORG_CHOSEN_KEY } from "./PostLoginOrgChooser";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { user, loading, profile, organization, authError, refresh } = useAuth();
+  const { user, loading, profile, organization, organizations, authError, refresh } = useAuth();
 
   if (loading) {
     return (
