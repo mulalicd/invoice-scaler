@@ -53,9 +53,9 @@ export default function NewInvoice() {
   })();
 
   useEffect(() => {
-    if (!canWrite) return;
+    if (!canWrite || !organization) return;
     (async () => {
-      const { data } = await supabase.from("clients").select("id, name").order("name");
+      const { data } = await supabase.from("clients").select("id, name").eq("organization_id", organization.id).order("name");
       setClients(data ?? []);
     })();
     if (organization?.default_note && !note) setNote(organization.default_note);
