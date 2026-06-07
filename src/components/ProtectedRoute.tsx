@@ -24,14 +24,30 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
   if (!user) return <Navigate to="/auth" replace />;
 
   if (authError) {
+    const isForbidden = /403|permission denied|forbidden|jwt|not authenticated|insufficient_privilege/i.test(authError);
+    const reLogin = async () => {
+      try { sessionStorage.removeItem(ORG_CHOSEN_KEY); } catch {}
+      const { supabase } = await import("@/integrations/supabase/client");
+      await supabase.auth.signOut();
+      window.location.href = "/auth";
+    };
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-muted/30">
         <div className="max-w-md text-center space-y-4">
           <AlertTriangle className="w-12 h-12 mx-auto text-destructive" />
-          <h1 className="text-2xl font-display font-bold">Dashboard se nije mogao učitati</h1>
-          <p className="text-sm text-muted-foreground">Greška je zabilježena u backend dnevniku sa detaljima zahtjeva i stack traceom.</p>
+          <h1 className="text-2xl font-display font-bold">
+            {isForbidden ? "Nemate pristup ili je sesija istekla" : "Dashboard se nije mogao učitati"}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {isForbidden
+              ? "Backend je odbio zahtjev (403). Prijavite se ponovo da obnovimo sesiju i ovlasti."
+              : "Greška je zabilježena u backend dnevniku sa detaljima zahtjeva i stack traceom."}
+          </p>
           <pre className="text-xs text-left bg-muted p-3 rounded overflow-auto max-h-40">{authError}</pre>
-          <Button onClick={refresh}>Pokušaj ponovo</Button>
+          <div className="flex gap-2 justify-center">
+            <Button onClick={refresh} variant="outline">Pokušaj ponovo</Button>
+            <Button onClick={reLogin}>Prijavi se ponovo</Button>
+          </div>
         </div>
       </div>
     );
