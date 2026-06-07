@@ -43,5 +43,11 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
     return <OnboardingScreen />;
   }
 
+  // Post-login org chooser: if user has 2+ orgs and hasn't chosen this session, show selector
+  const chosen = typeof window !== "undefined" ? sessionStorage.getItem(ORG_CHOSEN_KEY) : null;
+  if (organizations.length > 1 && !chosen) {
+    return <PostLoginOrgChooser />;
+  }
+
   return <AppLayout><ErrorBoundary scope="DashboardRoute" resetKey={window.location.pathname}>{children}</ErrorBoundary></AppLayout>;
 }
