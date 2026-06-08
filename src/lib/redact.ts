@@ -4,7 +4,7 @@
 
 const EMAIL_RE = /([A-Za-z0-9._%+-])[A-Za-z0-9._%+-]*(@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/g;
 const JWT_RE = /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g;
-const BEARER_RE = /\b(Bearer|Basic)\s+[A-Za-z0-9._\-+/=]{8,}\b/gi;
+const BEARER_RE = /\b(Bearer|Basic)\s+[A-Za-z0-9._\-+/=]{8,}/gi;
 const SBP_RE = /\bsb(?:p|s)_[A-Za-z0-9_-]{10,}\b/g;
 const SK_RE = /\bsk_(?:test|live)_[A-Za-z0-9]{8,}\b/g;
 const LONG_HEX_RE = /\b[a-f0-9]{32,}\b/gi;
