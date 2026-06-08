@@ -27,13 +27,17 @@ describe("dynamic import resilience (login & dashboard)", () => {
     expect(eb.default).toBeTypeOf("function");
   });
 
-  it("imports AuthScene without throwing (HMR-safe)", async () => {
-    // Re-import twice to simulate HMR module replacement.
-    const a = await import("@/components/three/AuthScene");
-    const b = await import("@/components/three/AuthScene?reimport=1" as any).catch(() => a);
-    expect(a.default).toBeTypeOf("function");
-    expect(b.default ?? a.default).toBeTypeOf("function");
+  it("imports AuthScene + Dashboard repeatedly (HMR simulation, 3 cycles)", async () => {
+    for (let i = 0; i < 3; i++) {
+      const [scene, dash] = await Promise.all([
+        import(`@/components/three/AuthScene?hmr=${i}` as any).catch(() => import("@/components/three/AuthScene")),
+        import(`@/pages/Dashboard?hmr=${i}` as any).catch(() => import("@/pages/Dashboard")),
+      ]);
+      expect(scene.default).toBeTypeOf("function");
+      expect(dash.default).toBeTypeOf("function");
+    }
   });
+
 
   it("imports PostLoginOrgChooser module", async () => {
     const mod = await import("@/components/PostLoginOrgChooser");
