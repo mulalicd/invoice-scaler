@@ -45,3 +45,55 @@ jobs:
           name: playwright-report
           path: playwright-report
           retention-days: 7
+      - name: Upload error report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: error-report
+          path: |
+            error-report.json
+            error-gate-comment.md
+          retention-days: 14
+          if-no-files-found: ignore
+
+  error-gate:
+    name: Fail-on-new-error gate
+    runs-on: ubuntu-latest
+    needs: e2e
+    if: always() && github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Download current error report
+        uses: actions/download-artifact@v4
+        with:
+          name: error-report
+          path: ./current
+        continue-on-error: true
+      - name: Restore baseline cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ./baseline
+          key: error-baseline-${{ github.base_ref }}-v1
+      - name: Run gate
+        id: gate
+        continue-on-error: true
+        run: node scripts/error-gate.mjs ./baseline/error-report.json ./current/error-report.json
+      - name: Save baseline (push to default branch)
+        if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        run: |
+          mkdir -p baseline
+          cp -f ./current/error-report.json ./baseline/error-report.json || true
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: error-gate-comment.md
+      - name: Enforce gate
+        if: steps.gate.outcome == 'failure'
+        run: exit 1
