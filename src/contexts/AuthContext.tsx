@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authError, setAuthError] = useState<string | null>(null);
   const loadSeq = useRef(0);
 
-  const loadUserData = async (userId: string) => {
+  const loadUserData = async (userId: string, opts?: { retried?: boolean }) => {
     const seq = ++loadSeq.current;
     try {
       setAuthError(null);
@@ -73,10 +73,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error: any) {
       if (seq !== loadSeq.current) return;
       const message = error?.message ?? "Dohvat profila, uloga ili organizacija nije uspio.";
+      const isForbidden = /403|jwt|permission denied|forbidden|insufficient_privilege|not authenticated/i.test(message);
+      // Auto-retry: refresh session once before surfacing 403
+      if (isForbidden && !opts?.retried) {
+        try {
+          const { data, error: refErr } = await supabase.auth.refreshSession();
+          if (!refErr && data?.session?.user?.id) {
+            await reportClientError(`Auto-retry after 403 (refresh OK): ${message}`, "AuthContext.loadUserData", error?.stack, { userId, retried: true });
+            return loadUserData(data.session.user.id, { retried: true });
+          }
+        } catch {/* fall through to error */}
+      }
       setAuthError(message);
-      await reportClientError(message, "AuthContext.loadUserData", error?.stack, { failures: error?.failures ?? null, userId });
+      await reportClientError(message, "AuthContext.loadUserData", error?.stack, { failures: error?.failures ?? null, userId, retried: opts?.retried ?? false });
     }
   };
+
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
