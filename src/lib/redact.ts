@@ -22,13 +22,14 @@ export function maskEmail(s: string): string {
 export function redactString(s: string | null | undefined): string {
   if (!s) return s ?? "";
   return s
-    .replace(JWT_RE, "[REDACTED_JWT]")
     .replace(BEARER_RE, "[REDACTED_AUTH]")
+    .replace(JWT_RE, "[REDACTED_JWT]")
     .replace(SBP_RE, "[REDACTED_KEY]")
     .replace(SK_RE, "[REDACTED_KEY]")
     .replace(APIKEY_PARAM_RE, "$1[REDACTED]")
     .replace(LONG_HEX_RE, "[REDACTED_HEX]")
     .replace(EMAIL_RE, (_m, first, domain) => `${first}***${domain}`);
+
 }
 
 export function redactValue(value: any): any {
