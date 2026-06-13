@@ -157,12 +157,14 @@ export default function InvoiceDetail() {
         </div>
       )}
 
-      <Card className="overflow-hidden shadow-card border-border/40">
+      <Card className="shadow-card border-border/40 overflow-hidden">
         <CardContent className="p-0">
-          <div ref={printRef}>
-            <InvoicePrintable
-              invoice={invoice} items={items} client={client} organization={organization!}
-            />
+          <div className="overflow-x-auto print:overflow-visible">
+            <div ref={printRef} className="mx-auto" style={{ width: "210mm" }}>
+              <InvoicePrintable
+                invoice={invoice} items={items} client={client} organization={organization!}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
