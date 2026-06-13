@@ -129,7 +129,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <div className="font-display font-bold">Faktura</div>
           <div className="w-9" />
         </header>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto overflow-x-hidden">
           {children}
         </main>
       </div>
