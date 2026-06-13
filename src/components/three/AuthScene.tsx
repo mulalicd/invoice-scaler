@@ -86,13 +86,16 @@ function Grid() {
 }
 
 export default function AuthScene() {
+  const prefersReducedMotion =
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   return (
     <Canvas
       camera={{ position: [0, 0.4, 6], fov: 55 }}
       dpr={[1, 1.5]}
       gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
       style={{ position: "absolute", inset: 0 }}
-      frameloop="always"
+      frameloop={prefersReducedMotion ? "demand" : "always"}
     >
       <ambientLight intensity={0.55} />
       <directionalLight position={[4, 6, 4]} intensity={1.1} color="#ffffff" />
