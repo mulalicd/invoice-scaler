@@ -14,14 +14,16 @@ describe("redact", () => {
     expect(redactString("https://x/y?apikey=secret123&foo=bar")).toContain("apikey=[REDACTED]");
   });
   it("redacts secret-shaped object keys", () => {
-    const out = redactValue({ password: "p", token: "t", nested: { api_key: "k", ok: "ok" } });
+    const out = redactValue({ password: "p", token: "t", nested: { api_key: "k", ok: "ok" } }) as {
+      password: string; token: string; nested: { api_key: string; ok: string };
+    };
     expect(out.password).toBe("[REDACTED]");
     expect(out.token).toBe("[REDACTED]");
     expect(out.nested.api_key).toBe("[REDACTED]");
     expect(out.nested.ok).toBe("ok");
   });
   it("masks email inside object string values", () => {
-    const out = redactValue({ note: "kontakt: alice@idss.ba" });
+    const out = redactValue({ note: "kontakt: alice@idss.ba" }) as { note: string };
     expect(out.note).toBe("kontakt: a***@idss.ba");
   });
 });

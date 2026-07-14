@@ -11,7 +11,7 @@ const toPlainContext = (context?: ErrorContext) => ({
 
 export async function reportClientError(message: string, source: string, stack?: string, context?: ErrorContext) {
   try {
-    await supabase.rpc("log_client_error" as any, {
+    await supabase.rpc("log_client_error", {
       _message: message,
       _source: source,
       _stack: stack ?? null,
@@ -24,15 +24,26 @@ export async function reportClientError(message: string, source: string, stack?:
   }
 }
 
-export async function reportSupabaseError(source: string, error: PostgrestError | Error | any, context?: ErrorContext) {
+interface SupabaseLikeError {
+  message?: string;
+  details?: string | null;
+  hint?: string | null;
+  code?: string | null;
+  status?: number | null;
+  statusCode?: number | null;
+  stack?: string;
+}
+
+export async function reportSupabaseError(source: string, error: PostgrestError | Error | SupabaseLikeError | null | undefined, context?: ErrorContext) {
   if (!error) return;
-  const message = [error.message, error.details, error.hint].filter(Boolean).join(" | ");
-  await reportClientError(message || "Backend request failed", source, error.stack, {
-    code: error.code ?? null,
-    details: error.details ?? null,
-    hint: error.hint ?? null,
-    status: error.status ?? null,
-    statusCode: error.statusCode ?? null,
+  const e = error as SupabaseLikeError;
+  const message = [e.message, e.details, e.hint].filter(Boolean).join(" | ");
+  await reportClientError(message || "Backend request failed", source, e.stack, {
+    code: e.code ?? null,
+    details: e.details ?? null,
+    hint: e.hint ?? null,
+    status: e.status ?? null,
+    statusCode: e.statusCode ?? null,
     ...toPlainContext(context),
   });
 }

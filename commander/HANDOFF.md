@@ -1,25 +1,27 @@
-# HANDOFF NOTE — Retroactive Commander Alignment
+# HANDOFF NOTE — TD-03 Phase 1 (lib layer)
 Datum: 14.07.2026
-Sprint: bootstrap-retroactive
+Sprint: td-03-phase-1-lib
 
-## Completed
+## Completed (this sprint)
 
-- Retroaktivno usvojena Commander v1.1 governance
-- Kreirani `commander/PROJECT_CONSTITUTION.md`, `commander/COMPLIANCE_AUDIT.md`,
-  `commander/DECISION_LOG.md`, `commander/HANDOFF.md`
-- Popisane sve odstupnice od Commander pravila (Tech Debt TD-01..TD-05)
-- Prethodni sigurnosni sprint: RLS + GRANT dovršen, security scan zelenim
-  osim dokumentovanih SECURITY DEFINER WARN-ova
-- Responsive layout fix (App.css, index.html, AppLayout)
-- Multi-org izbor nakon logina (`PostLoginOrgChooser`) — više nema automatskog
-  IDSS→dashboard skoka
-- Error log ekran s maskiranjem, auth diagnostics panel, E2E CI
+- **TD-03 Phase 1**: eliminisan `any` iz `src/lib/*`
+  - `redact.ts` — `redactValue` sada prima/vraća `unknown` uz `RedactableValue` tip
+  - `errorLogger.ts` — `SupabaseLikeError` interface umjesto `any`; uklonjen `as any` cast na `log_client_error` RPC
+  - `authRlsProbe.ts` — dodani `RoleRow`/`OrganizationRow` tipovi, `ProbeErrorLike` umjesto `any` u `failureFrom`; `client` ostaje `any` kao dokumentovani test-seam
+  - `invoicePdf.tsx` — `InvoiceWithRelations` interface; nema više `(inv as any)`
+  - `src/test/redact.test.ts` prilagođen novim tipovima
+- Testovi i typecheck zeleni (`redact.test.ts`, `authRlsProbe.test.ts`)
+
+## Prior sprint
+
+- Retroaktivno usvojena Commander v1.1 governance (D-001)
+- Kreirani `PROJECT_CONSTITUTION.md`, `COMPLIANCE_AUDIT.md`, `DECISION_LOG.md`
 
 ## Not completed (planirano)
 
 - TD-01 → feature-based folder migracija
 - TD-02 → konsolidovane Zod scheme
-- TD-03 → TS strict + eliminacija `any`
+- **TD-03 Phase 2** → `strict: true` u `tsconfig.app.json` + eliminacija `any` u `src/contexts` i `src/pages`
 - TD-04 → JSDoc pokrivenost
 - TD-05 → RLS regression suite
 
