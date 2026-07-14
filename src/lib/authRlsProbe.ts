@@ -23,7 +23,16 @@ export class AuthRlsProbeError extends Error {
   }
 }
 
-const failureFrom = (step: string, error: any): ProbeFailure | null => {
+interface ProbeErrorLike {
+  message?: string;
+  code?: string | null;
+  details?: string | null;
+  hint?: string | null;
+  status?: number | null;
+  statusCode?: number | null;
+}
+
+const failureFrom = (step: string, error: ProbeErrorLike | null | undefined): ProbeFailure | null => {
   if (!error) return null;
   return {
     step,
@@ -35,7 +44,14 @@ const failureFrom = (step: string, error: any): ProbeFailure | null => {
   };
 };
 
-export async function runAuthRlsProbe(client: any, userId: string) {
+// The probe reads generic tables; the concrete DB type isn't required here.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ProbeClient = SupabaseClient<any, any, any>;
+
+interface RoleRow { role: AuthRole; organization_id: string | null }
+interface OrganizationRow { id: string; [key: string]: unknown }
+
+export async function runAuthRlsProbe(client: ProbeClient, userId: string) {
   const [{ data: profile, error: profileError }, { data: rolesData, error: rolesError }] = await Promise.all([
     client.from("profiles").select("*").eq("id", userId).maybeSingle(),
     client.from("user_roles").select("role, organization_id").eq("user_id", userId),
@@ -44,8 +60,8 @@ export async function runAuthRlsProbe(client: any, userId: string) {
   const firstFailures = [failureFrom("profiles", profileError), failureFrom("user_roles", rolesError)].filter(Boolean) as ProbeFailure[];
   if (firstFailures.length) throw new AuthRlsProbeError(firstFailures);
 
-  const roleEntries: AuthRoleEntry[] = (rolesData ?? []).map((r: any) => ({
-    role: r.role as AuthRole,
+  const roleEntries: AuthRoleEntry[] = ((rolesData ?? []) as RoleRow[]).map(r => ({
+    role: r.role,
     organization_id: r.organization_id,
   }));
   const isSuperadmin = roleEntries.some(r => r.role === "superadmin");
@@ -60,18 +76,20 @@ export async function runAuthRlsProbe(client: any, userId: string) {
   const orgFailure = failureFrom("organizations", organizationsError);
   if (orgFailure) throw new AuthRlsProbeError([orgFailure]);
 
-  const activeId = profile?.active_organization_id || profile?.organization_id;
-  const activeOrganization = (organizations ?? []).find((o: any) => o.id === activeId) || (organizations ?? [])[0] || null;
+  const orgs = (organizations ?? []) as OrganizationRow[];
+  const profileRow = profile as { active_organization_id?: string | null; organization_id?: string | null } | null;
+  const activeId = profileRow?.active_organization_id || profileRow?.organization_id;
+  const activeOrganization = orgs.find(o => o.id === activeId) || orgs[0] || null;
 
   return {
     profile,
     roleEntries,
-    organizations: organizations ?? [],
+    organizations: orgs,
     activeOrganization,
   };
 }
 
-export async function runLoginAuthRlsFlowProbe(client: any, email: string, password: string) {
+export async function runLoginAuthRlsFlowProbe(client: ProbeClient, email: string, password: string) {
   const { data, error } = await client.auth.signInWithPassword({ email, password });
   const loginFailure = failureFrom("login", error);
   if (loginFailure) throw new AuthRlsProbeError([loginFailure]);

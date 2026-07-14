@@ -4,6 +4,14 @@ import html2canvas from "html2canvas";
 import { supabase } from "@/integrations/supabase/client";
 import InvoicePrintable from "@/components/InvoicePrintable";
 
+interface InvoiceWithRelations {
+  id: string;
+  invoice_number: string;
+  clients: Record<string, unknown> | null;
+  organizations: Record<string, unknown> | null;
+  [key: string]: unknown;
+}
+
 async function loadInvoiceData(invoiceId: string) {
   const { data: inv, error } = await supabase
     .from("invoices")
@@ -11,12 +19,13 @@ async function loadInvoiceData(invoiceId: string) {
     .eq("id", invoiceId)
     .maybeSingle();
   if (error || !inv) throw new Error(error?.message || "Faktura nije pronađena");
+  const invoice = inv as unknown as InvoiceWithRelations;
   const { data: items } = await supabase
     .from("invoice_items")
     .select("*")
     .eq("invoice_id", invoiceId)
     .order("position");
-  return { invoice: inv, client: (inv as any).clients, organization: (inv as any).organizations, items: items ?? [] };
+  return { invoice, client: invoice.clients, organization: invoice.organizations, items: items ?? [] };
 }
 
 async function renderInvoiceToCanvas(invoiceId: string): Promise<{ canvas: HTMLCanvasElement; invoiceNumber: string }> {
