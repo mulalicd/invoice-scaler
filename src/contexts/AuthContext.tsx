@@ -68,8 +68,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (seq !== loadSeq.current) return;
       setProfile(result.profile as Profile | null);
       setRoleEntries(result.roleEntries as RoleEntry[]);
-      setOrganizations(result.organizations as Organization[]);
-      setOrganization(result.activeOrganization as Organization | null);
+      setOrganizations(result.organizations as unknown as Organization[]);
+      setOrganization(result.activeOrganization as unknown as Organization | null);
     } catch (error: any) {
       if (seq !== loadSeq.current) return;
       const message = error?.message ?? "Dohvat profila, uloga ili organizacija nije uspio.";
