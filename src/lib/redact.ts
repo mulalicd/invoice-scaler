@@ -32,13 +32,18 @@ export function redactString(s: string | null | undefined): string {
 
 }
 
-export function redactValue(value: any): any {
+export type RedactableValue =
+  | string | number | boolean | null | undefined
+  | RedactableValue[]
+  | { [key: string]: RedactableValue };
+
+export function redactValue(value: unknown): unknown {
   if (value == null) return value;
   if (typeof value === "string") return redactString(value);
   if (Array.isArray(value)) return value.map(redactValue);
   if (typeof value === "object") {
-    const out: Record<string, any> = {};
-    for (const [k, v] of Object.entries(value)) {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
       if (SECRET_KEYS.has(k.toLowerCase())) { out[k] = "[REDACTED]"; continue; }
       out[k] = redactValue(v);
     }
