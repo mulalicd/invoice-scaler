@@ -21,7 +21,7 @@ Sprint: td-03-phase-1-lib
 
 - TD-01 → feature-based folder migracija
 - TD-02 → konsolidovane Zod scheme
-- TD-03 → TS strict + eliminacija `any`
+- **TD-03 Phase 2** → `strict: true` u `tsconfig.app.json` + eliminacija `any` u `src/contexts` i `src/pages`
 - TD-04 → JSDoc pokrivenost
 - TD-05 → RLS regression suite
 
