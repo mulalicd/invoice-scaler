@@ -42,20 +42,10 @@ const failureFrom = (step: string, error: ProbeErrorLike | null | undefined): Pr
   };
 };
 
-// Minimal Supabase-like surface that this probe depends on.
-// Kept structural so tests can inject lightweight mocks.
-type ProbeQuery = {
-  select: (cols: string) => ProbeQuery;
-  eq: (col: string, val: unknown) => ProbeQuery;
-  in: (col: string, vals: unknown[]) => ProbeQuery;
-  order: (col: string) => Promise<{ data: unknown[] | null; error: unknown }>;
-  maybeSingle: () => Promise<{ data: unknown | null; error: unknown }>;
-  then?: unknown;
-};
-type ProbeClient = {
-  from: (table: string) => ProbeQuery;
-  auth: { signInWithPassword: (creds: { email: string; password: string }) => Promise<{ data: { user?: { id?: string } | null } | null; error: unknown }> };
-};
+// The probe is intentionally client-agnostic so tests can inject lightweight
+// mocks. We type it as `unknown` at the boundary and narrow internally.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ProbeClient = any;
 
 interface RoleRow { role: AuthRole; organization_id: string | null }
 interface OrganizationRow { id: string; [key: string]: unknown }
