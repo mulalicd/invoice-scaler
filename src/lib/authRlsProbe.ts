@@ -1,3 +1,5 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 export type AuthRole = "admin" | "accountant" | "superadmin" | "viewer";
 
 export interface AuthRoleEntry { role: AuthRole; organization_id: string | null; }
