@@ -1,6 +1,6 @@
-# HANDOFF NOTE — Retroactive Commander Alignment
+# HANDOFF NOTE — TD-03 Phase 1 (lib layer)
 Datum: 14.07.2026
-Sprint: bootstrap-retroactive
+Sprint: td-03-phase-1-lib
 
 ## Completed
 
