@@ -33,7 +33,7 @@ const newRow = (): ItemRow => ({
 export default function NewInvoice() {
   const navigate = useNavigate();
   const { organization, canWrite } = useAuth();
-  const [clients, setClients] = useState<any[]>([]);
+  const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
   const [clientId, setClientId] = useState<string>("");
   const today = new Date().toISOString().slice(0, 10);
   const [issueDate, setIssueDate] = useState(today);
@@ -119,7 +119,7 @@ export default function NewInvoice() {
       subtotal, total: subtotal,
       amount_in_words: numberToBosnianWords(subtotal),
       status,
-    } as any).select().single();
+    }).select().single();
     if (invErr) { setSaving(false); return toast.error(invErr.message); }
 
     // 3) Insert items
@@ -132,7 +132,7 @@ export default function NewInvoice() {
         unit: r.unit || "kom",
         unit_price: parseNum(r.unit_price),
         total: parseNum(r.quantity) * parseNum(r.unit_price),
-      })) as any
+      }))
     );
     if (itErr) { setSaving(false); return toast.error(itErr.message); }
 

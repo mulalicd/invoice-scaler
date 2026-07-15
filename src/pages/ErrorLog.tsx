@@ -19,7 +19,7 @@ interface Row {
   stack: string | null;
   url: string | null;
   user_agent: string | null;
-  context: any;
+  context: Record<string, unknown> | null;
   organization_id: string | null;
 }
 
@@ -45,7 +45,7 @@ export default function ErrorLog() {
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from("error_log" as any)
+      .from("error_log")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(500);
@@ -70,11 +70,14 @@ export default function ErrorLog() {
 
   const display = (s: string | null) => showRaw ? (s ?? "") : redactString(s);
   const displayEmail = (s: string | null) => showRaw ? (s ?? "") : (s ? maskEmail(s) : "");
-  const displayCtx = (c: any) => showRaw ? c : redactValue(c);
+  const displayCtx = (c: unknown): Record<string, unknown> => {
+    const ctx = (showRaw ? c : redactValue(c)) as Record<string, unknown> | null | undefined;
+    return ctx ?? {};
+  };
 
   const exportCsv = () => {
     const header = ["created_at","user_email","source","route","query","organization_id","roles","message","url","request_id","stack"];
-    const escape = (v: any) => `"${String(v ?? "").replace(/"/g, '""').replace(/\r?\n/g, " ")}"`;
+    const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""').replace(/\r?\n/g, " ")}"`;
     const csv = [header.join(",")].concat(
       filtered.map(r => {
         const c = displayCtx(r.context) ?? {};

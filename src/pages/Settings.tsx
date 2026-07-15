@@ -11,12 +11,17 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Building2, Users as UsersIcon, ShieldCheck, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { validatePassword, PASSWORD_RULES_TEXT } from "@/lib/passwordPolicy";
+import type { OrganizationRow, ProfileRow } from "@/lib/domain";
+
+interface MemberRow extends Pick<ProfileRow, "id" | "email" | "first_name" | "last_name" | "organization_id"> {
+  roles: string[];
+}
 
 export default function Settings() {
   const { organization, isAdmin, isSuperadmin, refresh, profile } = useAuth();
-  const [form, setForm] = useState<any>({});
+  const [form, setForm] = useState<Partial<OrganizationRow>>({});
   const [saving, setSaving] = useState(false);
-  const [members, setMembers] = useState<any[]>([]);
+  const [members, setMembers] = useState<MemberRow[]>([]);
   const [pwd, setPwd] = useState("");
   const [pwd2, setPwd2] = useState("");
   const [pwdSaving, setPwdSaving] = useState(false);
@@ -32,7 +37,7 @@ export default function Settings() {
     toast.success("Lozinka uspješno promijenjena");
   };
 
-  useEffect(() => { if (organization) setForm(organization); }, [organization]);
+  useEffect(() => { if (organization) setForm(organization as Partial<OrganizationRow>); }, [organization]);
 
   const reloadMembers = async () => {
     if (!organization) return;
@@ -42,9 +47,11 @@ export default function Settings() {
     const { data: roles } = await supabase.from("user_roles")
       .select("user_id, role, organization_id")
       .or(`organization_id.eq.${organization.id},organization_id.is.null`);
-    const merged = (profs ?? []).map((p: any) => ({
+    type ProfRow = Pick<ProfileRow, "id" | "email" | "first_name" | "last_name" | "organization_id">;
+    type RoleRow = { user_id: string; role: string; organization_id: string | null };
+    const merged: MemberRow[] = ((profs ?? []) as ProfRow[]).map((p) => ({
       ...p,
-      roles: (roles ?? []).filter((r: any) => r.user_id === p.id).map((r: any) => r.role),
+      roles: ((roles ?? []) as RoleRow[]).filter(r => r.user_id === p.id).map(r => r.role),
     }));
     setMembers(merged);
   };
@@ -70,7 +77,7 @@ export default function Settings() {
 
   const setRole = async (userId: string, role: "admin" | "viewer" | "superadmin", grant: boolean) => {
     if (!organization) return;
-    const { error } = await supabase.rpc("admin_set_user_role" as any, {
+    const { error } = await supabase.rpc("admin_set_user_role", {
       _user_id: userId, _org_id: organization.id, _role: role, _grant: grant,
     });
     if (error) return toast.error(error.message);
@@ -79,7 +86,7 @@ export default function Settings() {
   };
 
   const forcePwdReset = async (userId: string) => {
-    const { error } = await supabase.from("profiles").update({ must_change_password: true } as any).eq("id", userId);
+    const { error } = await supabase.from("profiles").update({ must_change_password: true }).eq("id", userId);
     if (error) return toast.error(error.message);
     toast.success("Korisnik mora promijeniti lozinku pri sljedećoj prijavi");
   };
@@ -236,7 +243,16 @@ export default function Settings() {
   );
 }
 
-function Field({ label, v, on, disabled, type, placeholder, className = "" }: any) {
+interface FieldProps {
+  label: string;
+  v: string | number | null | undefined;
+  on: (value: string) => void;
+  disabled?: boolean;
+  type?: string;
+  placeholder?: string;
+  className?: string;
+}
+function Field({ label, v, on, disabled, type, placeholder, className = "" }: FieldProps) {
   return (
     <div className={`space-y-2 ${className}`}>
       <Label>{label}</Label>

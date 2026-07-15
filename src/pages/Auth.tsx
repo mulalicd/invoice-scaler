@@ -14,7 +14,10 @@ import { reportClientError } from "@/lib/errorLogger";
 class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
-  componentDidCatch(err: any) { reportClientError(err?.message ?? "Auth scene failed", "AuthScene", err?.stack); }
+  componentDidCatch(err: unknown) {
+    const e = err as { message?: string; stack?: string } | null;
+    reportClientError(e?.message ?? "Auth scene failed", "AuthScene", e?.stack);
+  }
   render() { return this.state.failed ? null : this.props.children; }
 }
 

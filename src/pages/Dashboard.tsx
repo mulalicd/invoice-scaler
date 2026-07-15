@@ -8,6 +8,7 @@ import { FileText, Users, TrendingUp, Plus, ArrowUpRight, Receipt, Clock, CheckC
 import { formatKM, formatDate } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { reportSupabaseError } from "@/lib/errorLogger";
+import type { DashboardInvoiceRow } from "@/lib/domain";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
   PieChart, Pie, Cell, Legend, BarChart, Bar
@@ -26,7 +27,7 @@ const MONTH_LABELS = ["Jan","Feb","Mar","Apr","Maj","Jun","Jul","Aug","Sep","Okt
 
 export default function Dashboard() {
   const { organization, canWrite, isViewer } = useAuth();
-  const [invs, setInvs] = useState<any[]>([]);
+  const [invs, setInvs] = useState<DashboardInvoiceRow[]>([]);
   const [clientCount, setClientCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -50,7 +51,7 @@ export default function Dashboard() {
         setLoading(false);
         return;
       }
-      setInvs(rows ?? []);
+      setInvs((rows ?? []) as unknown as DashboardInvoiceRow[]);
       setClientCount(count ?? 0);
       setLoading(false);
     })();
@@ -60,7 +61,7 @@ export default function Dashboard() {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
     const yearStart = `${now.getFullYear()}-01-01`;
-    const billable = (i: any) => i.status === "issued" || i.status === "paid";
+    const billable = (i: DashboardInvoiceRow) => i.status === "issued" || i.status === "paid";
     const monthTotal = invs.filter(i => i.issue_date >= monthStart && billable(i)).reduce((s, i) => s + Number(i.total), 0);
     const yearTotal = invs.filter(i => i.issue_date >= yearStart && billable(i)).reduce((s, i) => s + Number(i.total), 0);
     const paidTotal = invs.filter(i => i.status === "paid").reduce((s, i) => s + Number(i.total), 0);
@@ -183,7 +184,7 @@ export default function Dashboard() {
                 <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`}/>
                 <Tooltip
                   contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                  formatter={(v: any) => formatKM(Number(v))}
+                  formatter={(v: number | string) => formatKM(Number(v))}
                 />
                 <Area type="monotone" dataKey="total" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#gIssued)" name="Izdano" />
                 <Area type="monotone" dataKey="paid" stroke="hsl(var(--success))" strokeWidth={2} fill="url(#gPaid)" name="Plaćeno" />
@@ -231,7 +232,7 @@ export default function Dashboard() {
                   <YAxis type="category" dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} width={130}/>
                   <Tooltip
                     contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                    formatter={(v: any, _n: any, p: any) => [formatKM(Number(v)), `Prihod (${p.payload.count} faktura)`]}
+                    formatter={(v: number | string, _n: unknown, p: { payload: { count: number } }) => [formatKM(Number(v)), `Prihod (${p.payload.count} faktura)`]}
                   />
                   <Bar dataKey="total" fill="hsl(var(--primary))" radius={[0,6,6,0]} />
                 </BarChart>
@@ -256,7 +257,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="divide-y divide-border">
-                {recent.map((inv: any) => (
+                {recent.map((inv) => (
                   <Link key={inv.id} to={`/invoices/${inv.id}`} className="flex items-center justify-between py-3 group hover:bg-accent/30 -mx-2 px-2 rounded-md transition-smooth">
                     <div className="min-w-0 flex-1">
                       <div className="font-medium font-mono text-sm">{inv.invoice_number}</div>
@@ -277,7 +278,14 @@ export default function Dashboard() {
   );
 }
 
-function KpiCard({ icon: Icon, label, value, accent, sub }: any) {
+interface KpiCardProps {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+  accent?: "primary" | "success" | "warning";
+  sub?: string;
+}
+function KpiCard({ icon: Icon, label, value, accent, sub }: KpiCardProps) {
   const accentBg =
     accent === "primary" ? "from-primary/15 to-primary/0 ring-primary/20" :
     accent === "success" ? "from-success/20 to-success/0 ring-success/20" :
