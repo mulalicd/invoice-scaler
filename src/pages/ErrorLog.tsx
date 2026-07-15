@@ -156,7 +156,7 @@ export default function ErrorLog() {
                         <div className="flex flex-wrap items-center gap-2 mb-1">
                           <Badge variant="outline" className="font-mono text-xs">{r.source ?? "—"}</Badge>
                           {rid && <Badge variant="secondary" className="font-mono text-xs">req: {String(rid)}</Badge>}
-                          {(ctx?.route ?? route) && <Badge variant="outline" className="text-xs">route: {ctx?.route ?? route}</Badge>}
+                          {(ctx?.route ?? route) && <Badge variant="outline" className="text-xs">route: {String(ctx?.route ?? route ?? "")}</Badge>}
                           {orgId && <Badge variant="outline" className="text-xs">org: {String(orgId).slice(0, 8)}…</Badge>}
                           {roles.map((rl: string, i: number) => <Badge key={i} variant="outline" className="text-xs">role: {rl}</Badge>)}
                           <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString("bs-BA")}</span>

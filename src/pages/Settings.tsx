@@ -140,7 +140,7 @@ export default function Settings() {
             </CardHeader>
             <CardContent className="grid sm:grid-cols-2 gap-4">
               <Field label="Brand boja (HEX)" v={form.brand_color} on={(v) => setForm({ ...form, brand_color: v })} disabled={!isAdmin} placeholder="#1f4e8c" />
-              <Field label="Rok plaćanja (dana)" type="number" v={form.default_payment_days} on={(v) => setForm({ ...form, default_payment_days: v })} disabled={!isAdmin} />
+              <Field label="Rok plaćanja (dana)" type="number" v={form.default_payment_days} on={(v) => setForm({ ...form, default_payment_days: v === "" ? null : Number(v) })} disabled={!isAdmin} />
               <div className="sm:col-span-2 space-y-2">
                 <Label>Standardna napomena</Label>
                 <Textarea rows={3} value={form.default_note ?? ""} disabled={!isAdmin} onChange={e => setForm({ ...form, default_note: e.target.value })} />
