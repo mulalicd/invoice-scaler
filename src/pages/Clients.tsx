@@ -60,16 +60,16 @@ export default function Clients() {
     if (!parsed.success) return toast.error(parsed.error.errors[0].message);
     setLoading(true);
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       ...parsed.data,
       organization_id: organization.id,
     };
     // strip empty strings → null
-    Object.keys(payload).forEach(k => { if ((payload as any)[k] === "") (payload as any)[k] = null; });
+    Object.keys(payload).forEach(k => { if (payload[k] === "") payload[k] = null; });
 
     const { error } = editing
       ? await supabase.from("clients").update(payload).eq("id", editing.id)
-      : await supabase.from("clients").insert(payload as any);
+      : await supabase.from("clients").insert(payload as Parameters<typeof supabase.from<"clients">>[0] extends never ? never : { name: string; organization_id: string });
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success(editing ? "Klijent ažuriran" : "Klijent dodan");
