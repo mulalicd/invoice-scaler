@@ -13,14 +13,16 @@ import InvoicePrintable from "@/components/InvoicePrintable";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { canvasToA4Pdf } from "@/lib/invoicePdf";
+import { errorMessage } from "@/lib/errorMessage";
+import type { InvoiceRow, InvoiceItemRow, ClientRow, InvoiceStatus } from "@/lib/domain";
 
 export default function InvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { organization, isAdmin, canWrite } = useAuth();
-  const [invoice, setInvoice] = useState<any>(null);
-  const [items, setItems] = useState<any[]>([]);
-  const [client, setClient] = useState<any>(null);
+  const [invoice, setInvoice] = useState<InvoiceRow | null>(null);
+  const [items, setItems] = useState<InvoiceItemRow[]>([]);
+  const [client, setClient] = useState<ClientRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [emailBusy, setEmailBusy] = useState(false);
@@ -30,10 +32,11 @@ export default function InvoiceDetail() {
     if (!id) return;
     const { data: inv } = await supabase.from("invoices").select("*, clients(*)").eq("id", id).maybeSingle();
     if (!inv) { setLoading(false); return; }
-    setInvoice(inv);
-    setClient(inv.clients);
+    const { clients: joinedClient, ...invoiceOnly } = inv as InvoiceRow & { clients: ClientRow | null };
+    setInvoice(invoiceOnly as InvoiceRow);
+    setClient(joinedClient);
     const { data: its } = await supabase.from("invoice_items").select("*").eq("invoice_id", id).order("position");
-    setItems(its ?? []);
+    setItems((its ?? []) as InvoiceItemRow[]);
     setLoading(false);
   };
 
@@ -41,21 +44,21 @@ export default function InvoiceDetail() {
 
   const updateStatus = async (status: string) => {
     if (!canWrite) return toast.error("Nemate ovlaštenje za izmjenu statusa");
-    const { error } = await supabase.from("invoices").update({ status: status as any }).eq("id", id!);
+    const { error } = await supabase.from("invoices").update({ status: status as InvoiceStatus }).eq("id", id!);
     if (error) return toast.error(error.message);
     toast.success("Status ažuriran"); load();
   };
 
   const remove = async () => {
     if (!canWrite) return toast.error("Nemate ovlaštenje za brisanje");
-    if (!confirm(`Obrisati fakturu ${invoice.invoice_number}?`)) return;
+    if (!confirm(`Obrisati fakturu ${invoice?.invoice_number}?`)) return;
     const { error } = await supabase.from("invoices").delete().eq("id", id!);
     if (error) return toast.error(error.message);
     toast.success("Obrisano"); navigate("/invoices");
   };
 
   const generatePdfBlob = async (): Promise<{ blob: Blob; filename: string } | null> => {
-    if (!printRef.current) return null;
+    if (!printRef.current || !invoice) return null;
     const canvas = await html2canvas(printRef.current, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
     const pdf = canvasToA4Pdf(canvas);
     const filename = `Faktura-${invoice.invoice_number.replace(/\//g, "-")}.pdf`;
@@ -78,6 +81,7 @@ export default function InvoiceDetail() {
   const sendEmail = async () => {
     if (!canWrite) return toast.error("Nemate ovlaštenje za slanje");
     if (!client?.email) return toast.error("Klijent nema email adresu");
+    if (!invoice) return;
     if (!confirm(`Poslati fakturu na ${client.email}?`)) return;
     setEmailBusy(true);
     try {
@@ -104,8 +108,8 @@ export default function InvoiceDetail() {
       });
       if (error) throw error;
       toast.success(`Faktura poslana na ${client.email}`);
-    } catch (e: any) {
-      toast.error(e.message ?? "Greška slanja");
+    } catch (e: unknown) {
+      toast.error(errorMessage(e, "Greška slanja"));
     } finally { setEmailBusy(false); }
   };
 

@@ -14,7 +14,7 @@ export default function Admin() {
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
   const [stats, setStats] = useState<{ clients: number; invoices: number } | null>(null);
-  const [audit, setAudit] = useState<any[]>([]);
+  const [audit, setAudit] = useState<import("@/lib/domain").AuditLogRow[]>([]);
 
   useEffect(() => {
     if (!organization) return;
@@ -46,10 +46,11 @@ export default function Admin() {
     if (!organization) return;
     if (confirm !== "OBRISI SVE PODATKE") { toast.error("Pogrešna potvrda"); return; }
     setBusy(true);
-    const { data, error } = await supabase.rpc("wipe_org_data" as any, { _org_id: organization.id, _confirm: confirm });
+    const { data, error } = await supabase.rpc("wipe_org_data", { _org_id: organization.id, _confirm: confirm });
     setBusy(false); setConfirm("");
     if (error) { toast.error(error.message); return; }
-    toast.success(`Obrisano: ${(data as any)?.invoices_deleted} faktura, ${(data as any)?.clients_deleted} klijenata`);
+    const result = (data ?? {}) as { invoices_deleted?: number; clients_deleted?: number };
+    toast.success(`Obrisano: ${result.invoices_deleted ?? 0} faktura, ${result.clients_deleted ?? 0} klijenata`);
     refresh();
   };
 

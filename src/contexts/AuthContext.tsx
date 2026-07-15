@@ -3,6 +3,7 @@ import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { reportClientError } from "@/lib/errorLogger";
 import { runAuthRlsProbe } from "@/lib/authRlsProbe";
+import { errorMessage, errorStack, toErrorLike } from "@/lib/errorMessage";
 
 interface Profile {
   id: string;
@@ -70,22 +71,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setRoleEntries(result.roleEntries as RoleEntry[]);
       setOrganizations(result.organizations as unknown as Organization[]);
       setOrganization(result.activeOrganization as unknown as Organization | null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (seq !== loadSeq.current) return;
-      const message = error?.message ?? "Dohvat profila, uloga ili organizacija nije uspio.";
+      const message = errorMessage(error, "Dohvat profila, uloga ili organizacija nije uspio.");
+      const stack = errorStack(error);
+      const failures = (toErrorLike(error) as { failures?: unknown }).failures ?? null;
       const isForbidden = /403|jwt|permission denied|forbidden|insufficient_privilege|not authenticated/i.test(message);
       // Auto-retry: refresh session once before surfacing 403
       if (isForbidden && !opts?.retried) {
         try {
           const { data, error: refErr } = await supabase.auth.refreshSession();
           if (!refErr && data?.session?.user?.id) {
-            await reportClientError(`Auto-retry after 403 (refresh OK): ${message}`, "AuthContext.loadUserData", error?.stack, { userId, retried: true });
+            await reportClientError(`Auto-retry after 403 (refresh OK): ${message}`, "AuthContext.loadUserData", stack, { userId, retried: true });
             return loadUserData(data.session.user.id, { retried: true });
           }
         } catch {/* fall through to error */}
       }
       setAuthError(message);
-      await reportClientError(message, "AuthContext.loadUserData", error?.stack, { failures: error?.failures ?? null, userId, retried: opts?.retried ?? false });
+      await reportClientError(message, "AuthContext.loadUserData", stack, { failures, userId, retried: opts?.retried ?? false });
     }
   };
 
@@ -110,7 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const refresh = async () => { if (user) await loadUserData(user.id); };
 
   const switchOrg = async (orgId: string) => {
-    const { error } = await supabase.rpc("switch_active_organization", { _org_id: orgId } as any);
+    const { error } = await supabase.rpc("switch_active_organization", { _org_id: orgId });
     if (error) throw error;
     await refresh();
   };
