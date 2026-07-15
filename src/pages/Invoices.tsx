@@ -11,10 +11,12 @@ import { formatKM, formatDate } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { downloadInvoicePdf, printInvoice } from "@/lib/invoicePdf";
 import { toast } from "sonner";
+import { errorMessage } from "@/lib/errorMessage";
+import type { InvoiceListRow } from "@/lib/domain";
 
 export default function Invoices() {
   const { organization, canWrite } = useAuth();
-  const [list, setList] = useState<any[]>([]);
+  const [list, setList] = useState<InvoiceListRow[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [from, setFrom] = useState<string>("");
@@ -24,13 +26,13 @@ export default function Invoices() {
   const handlePdf = async (id: string) => {
     setBusyId(id);
     try { await downloadInvoicePdf(id); toast.success("PDF preuzet"); }
-    catch (e: any) { toast.error(e.message || "Greška PDF"); }
+    catch (e: unknown) { toast.error(errorMessage(e, "Greška PDF")); }
     finally { setBusyId(null); }
   };
   const handlePrint = async (id: string) => {
     setBusyId(id);
     try { await printInvoice(id); }
-    catch (e: any) { toast.error(e.message || "Greška print"); }
+    catch (e: unknown) { toast.error(errorMessage(e, "Greška print")); }
     finally { setBusyId(null); }
   };
 
@@ -43,7 +45,7 @@ export default function Invoices() {
         .eq("organization_id", organization.id)
         .order("issue_date", { ascending: false })
         .order("invoice_seq", { ascending: false });
-      setList(data ?? []);
+      setList((data ?? []) as unknown as InvoiceListRow[]);
     })();
   }, [organization]);
 
