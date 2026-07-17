@@ -9,6 +9,8 @@ TYPE ∈ { CORRECTION, CLARIFICATION, REVERSAL, SCOPE-CHANGE, DIRECTIVE }
 
 ## 2026-07 Sprint zapisi
 
+- `2026-07-17 | CORRECTION | P0 fix: seed-users edge funkcija zahtijeva SEED_USERS_ADMIN_TOKEN header (blokira anonimni mass-delete) | BRUTAL-STRESS-TEST-17072026.md S-12`
+- `2026-07-17 | DIRECTIVE | Brutal stress test proveden: sigurnost, deployment, harmonizacija, dozvole, Commander compliance | BRUTAL-STRESS-TEST-17072026.md`
 - `2026-07-15 | DIRECTIVE | Nastavak TD-03 Faze 2 (contexts + pages strict typing) | commander/HANDOFF.md`
 - `2026-07-15 | CORRECTION | Vraćen GRANT EXECUTE na helper funkcije nakon 403 regresije | migration + D-005 kontekst`
 - `2026-07-14 | DIRECTIVE | Retroaktivno usvojiti Commander v1.1 (kasnije upgrade na v1.2) | commander/DECISION_LOG.md D-001`

@@ -15,6 +15,18 @@ const SEED = [
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  // Hardened: zahtijeva shared-secret admin token (bez tokena vraća 401).
+  // Sprječava anonimno pokretanje seed/lockout tokom kojeg bi napadač mogao
+  // brisati auth korisnike ili resetovati whitelist lozinke.
+  const providedToken = req.headers.get("x-admin-token") ?? "";
+  const expectedToken = Deno.env.get("SEED_USERS_ADMIN_TOKEN") ?? "";
+  if (!expectedToken || providedToken !== expectedToken) {
+    return new Response(JSON.stringify({ error: "unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   const admin = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
