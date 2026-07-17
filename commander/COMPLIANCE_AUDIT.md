@@ -1,6 +1,21 @@
 # Commander Compliance Audit — Faktura Sistem
-Datum: 14.07.2026
-Governance: Commander v1.1 (retroactive)
+Datum: 15.07.2026
+Governance: Commander v1.2 (retroactive; bootstrap usaglašen u Sprint 09)
+
+## Bootstrap struktura (Commander v1.2)
+
+| Putanja | Status | Napomena |
+|---------|--------|----------|
+| `commander/PROJECT_CONSTITUTION.md` | ✅ | Sprint 07 |
+| `commander/COMPLIANCE_AUDIT.md` | ✅ | ovaj dokument |
+| `commander/HANDOFF.md` | ✅ | trenutni sprint |
+| `commander/DECISION_LOG.md` | ✅ | D-000..D-005 |
+| `corrections/ACTIVITY_LOG.md` | ✅ | Sprint 09 |
+| `sprints/SPRINT_01..09.md` | ✅ | retroaktivno rekonstruisano |
+| `automation/PROJECT_CLAUDE_MD_TEMPLATE.md` | ✅ | Sprint 09 |
+| `.claude/hooks/` | ❌ N/A | Lovable ekvivalent: `.github/workflows/ci.yml` + `scripts/error-gate.mjs` |
+
+
 
 Retroaktivna analiza usklađenosti postojećeg koda s Commander pravilima.
 Legenda: ✅ usklađeno · ⚠️ djelimično · ❌ nije usklađeno · N/A neprimjenjivo
