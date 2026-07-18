@@ -41,17 +41,21 @@ export default function Settings() {
 
   const reloadMembers = async () => {
     if (!organization) return;
-    const { data: profs } = await supabase.from("profiles")
-      .select("id, email, first_name, last_name, organization_id")
-      .eq("organization_id", organization.id);
+    // Povuci sve uloge vezane za aktivnu org (+ superadmin globalno) — izvor istine za članstvo
     const { data: roles } = await supabase.from("user_roles")
       .select("user_id, role, organization_id")
-      .or(`organization_id.eq.${organization.id},organization_id.is.null`);
-    type ProfRow = Pick<ProfileRow, "id" | "email" | "first_name" | "last_name" | "organization_id">;
+      .or(`organization_id.eq.${organization.id},role.eq.superadmin`);
     type RoleRow = { user_id: string; role: string; organization_id: string | null };
+    const roleRows = (roles ?? []) as RoleRow[];
+    const userIds = Array.from(new Set(roleRows.map(r => r.user_id)));
+    if (userIds.length === 0) { setMembers([]); return; }
+    const { data: profs } = await supabase.from("profiles")
+      .select("id, email, first_name, last_name, organization_id")
+      .in("id", userIds);
+    type ProfRow = Pick<ProfileRow, "id" | "email" | "first_name" | "last_name" | "organization_id">;
     const merged: MemberRow[] = ((profs ?? []) as ProfRow[]).map((p) => ({
       ...p,
-      roles: ((roles ?? []) as RoleRow[]).filter(r => r.user_id === p.id).map(r => r.role),
+      roles: roleRows.filter(r => r.user_id === p.id).map(r => r.role),
     }));
     setMembers(merged);
   };
