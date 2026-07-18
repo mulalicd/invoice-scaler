@@ -13,6 +13,7 @@ Governance: Commander v1.2 (retroactive; bootstrap usaglašen u Sprint 09)
 | `corrections/ACTIVITY_LOG.md` | ✅ | Sprint 09 |
 | `sprints/SPRINT_01..09.md` | ✅ | retroaktivno rekonstruisano |
 | `automation/PROJECT_CLAUDE_MD_TEMPLATE.md` | ✅ | Sprint 09 |
+| `.commander-version` | ✅ | `1.2` (Sprint 10 alignment) |
 | `.claude/hooks/` | ❌ N/A | Lovable ekvivalent: `.github/workflows/ci.yml` + `scripts/error-gate.mjs` |
 
 
