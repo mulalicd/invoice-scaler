@@ -9,6 +9,7 @@ TYPE ∈ { CORRECTION, CLARIFICATION, REVERSAL, SCOPE-CHANGE, DIRECTIVE }
 
 ## 2026-07 Sprint zapisi
 
+- `2026-07-18 | DIRECTIVE | Verificirana usklađenost s Commander v1.2 (initial_instructions.md sa git raw). Dodan .commander-version=1.2. .claude/hooks/* ostaje N/A (Lovable sandbox) — ekvivalent CI + error-gate potvrđen. | commander/COMPLIANCE_AUDIT.md bootstrap tabela`
 - `2026-07-17 | CORRECTION | P0 fix: seed-users edge funkcija zahtijeva SEED_USERS_ADMIN_TOKEN header (blokira anonimni mass-delete) | BRUTAL-STRESS-TEST-17072026.md S-12`
 - `2026-07-17 | DIRECTIVE | Brutal stress test proveden: sigurnost, deployment, harmonizacija, dozvole, Commander compliance | BRUTAL-STRESS-TEST-17072026.md`
 - `2026-07-15 | DIRECTIVE | Nastavak TD-03 Faze 2 (contexts + pages strict typing) | commander/HANDOFF.md`
