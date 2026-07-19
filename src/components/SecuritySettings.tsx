@@ -20,7 +20,7 @@ export default function SecuritySettings() {
   const [enrolling, setEnrolling] = useState<EnrollResult | null>(null);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
-  const [signOutBusy, setSignOutBusy] = useState(false);
+  
 
   const reload = async () => {
     setLoading(true);
@@ -80,15 +80,6 @@ export default function SecuritySettings() {
     finally { setBusy(false); }
   };
 
-  const doSignOutAll = async () => {
-    setSignOutBusy(true);
-    try {
-      await signOutAllDevices();
-      toast.success("Odjavljeni ste sa svih uređaja");
-      window.location.href = "/auth";
-    } catch (e) { toast.error((e as Error).message); }
-    finally { setSignOutBusy(false); }
-  };
 
   const verified = factors.filter((f) => f.status === "verified");
 
