@@ -6,12 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Loader2, ShieldCheck, ShieldOff, Smartphone, LogOut, Copy } from "lucide-react";
+import { Loader2, ShieldCheck, ShieldOff, Smartphone, Copy } from "lucide-react";
 import { toast } from "sonner";
 import {
-  enrollTotp, verifyTotpEnrollment, listTotpFactors, unenrollFactor, signOutAllDevices,
+  enrollTotp, verifyTotpEnrollment, listTotpFactors, unenrollFactor,
   type TotpFactorSummary, type EnrollResult,
 } from "@/lib/mfa";
+import SessionManagement from "@/components/SessionManagement";
 
 export default function SecuritySettings() {
   const [factors, setFactors] = useState<TotpFactorSummary[]>([]);
@@ -19,7 +20,7 @@ export default function SecuritySettings() {
   const [enrolling, setEnrolling] = useState<EnrollResult | null>(null);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
-  const [signOutBusy, setSignOutBusy] = useState(false);
+  
 
   const reload = async () => {
     setLoading(true);
@@ -79,15 +80,6 @@ export default function SecuritySettings() {
     finally { setBusy(false); }
   };
 
-  const doSignOutAll = async () => {
-    setSignOutBusy(true);
-    try {
-      await signOutAllDevices();
-      toast.success("Odjavljeni ste sa svih uređaja");
-      window.location.href = "/auth";
-    } catch (e) { toast.error((e as Error).message); }
-    finally { setSignOutBusy(false); }
-  };
 
   const verified = factors.filter((f) => f.status === "verified");
 
@@ -162,38 +154,7 @@ export default function SecuritySettings() {
         </CardContent>
       </Card>
 
-      <Card className="border-border/60">
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <LogOut className="w-4 h-4" /> Aktivne sesije
-          </CardTitle>
-          <CardDescription>
-            Odjavite račun sa svih uređaja (browsera, telefona, tableta). Ova radnja poništava sve tokene.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" disabled={signOutBusy}>
-                {signOutBusy && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                <LogOut className="w-4 h-4 mr-2" /> Odjavi sa svih uređaja
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Odjaviti sve sesije?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Bit ćete odjavljeni i sa ovog uređaja. Morat ćete se ponovo prijaviti.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Odustani</AlertDialogCancel>
-                <AlertDialogAction onClick={doSignOutAll}>Odjavi sve</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </CardContent>
-      </Card>
+      <SessionManagement />
 
       <Dialog open={!!enrolling} onOpenChange={(o) => { if (!o) cancelEnroll(); }}>
         <DialogContent className="max-w-md">
