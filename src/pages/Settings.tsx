@@ -8,9 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Building2, Users as UsersIcon, ShieldCheck, KeyRound } from "lucide-react";
+import { Loader2, Building2, Users as UsersIcon, ShieldCheck, KeyRound, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { validatePassword, PASSWORD_RULES_TEXT } from "@/lib/passwordPolicy";
+import SecuritySettings from "@/components/SecuritySettings";
 import type { OrganizationRow, ProfileRow } from "@/lib/domain";
 
 interface MemberRow extends Pick<ProfileRow, "id" | "email" | "first_name" | "last_name" | "organization_id"> {
