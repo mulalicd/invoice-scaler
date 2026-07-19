@@ -54,6 +54,8 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
     );
   }
 
+  if (mfaRequired) return <MfaChallenge />;
+
   if (profile?.must_change_password) return <ForcePasswordChange />;
 
   if (!profile?.organization_id || !organization) {
