@@ -107,6 +107,7 @@ export default function Settings() {
         <TabsList>
           <TabsTrigger value="org"><Building2 className="w-4 h-4 mr-2" />Organizacija</TabsTrigger>
           <TabsTrigger value="users"><UsersIcon className="w-4 h-4 mr-2" />Korisnici</TabsTrigger>
+          <TabsTrigger value="security"><Lock className="w-4 h-4 mr-2" />Sigurnost</TabsTrigger>
           <TabsTrigger value="account"><KeyRound className="w-4 h-4 mr-2" />Moj račun</TabsTrigger>
         </TabsList>
 
