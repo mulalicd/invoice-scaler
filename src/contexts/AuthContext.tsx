@@ -39,6 +39,7 @@ interface AuthContextValue {
   roles: Role[];
   loading: boolean;
   authError: string | null;
+  mfaRequired: boolean;
   isAdmin: boolean;
   isSuperadmin: boolean;
   isViewer: boolean;
@@ -59,7 +60,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [roleEntries, setRoleEntries] = useState<RoleEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [mfaRequired, setMfaRequired] = useState(false);
   const loadSeq = useRef(0);
+
+  const evaluateMfa = async () => {
+    try {
+      const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      setMfaRequired(data?.currentLevel === "aal1" && data?.nextLevel === "aal2");
+    } catch { setMfaRequired(false); }
+  };
 
   const loadUserData = async (userId: string, opts?: { retried?: boolean }) => {
     const seq = ++loadSeq.current;
@@ -98,13 +107,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(sess); setUser(sess?.user ?? null);
       if (sess?.user && event !== "INITIAL_SESSION") {
         setLoading(true);
-        setTimeout(() => loadUserData(sess.user.id).finally(() => setLoading(false)), 0);
+        setTimeout(() => {
+          loadUserData(sess.user.id).finally(() => setLoading(false));
+          evaluateMfa();
+        }, 0);
       }
-      else { loadSeq.current++; setProfile(null); setOrganization(null); setOrganizations([]); setRoleEntries([]); setAuthError(null); setLoading(false); }
+      else { loadSeq.current++; setProfile(null); setOrganization(null); setOrganizations([]); setRoleEntries([]); setAuthError(null); setMfaRequired(false); setLoading(false); }
     });
     supabase.auth.getSession().then(({ data: { session: sess } }) => {
       setSession(sess); setUser(sess?.user ?? null);
-      if (sess?.user) loadUserData(sess.user.id).finally(() => setLoading(false));
+      if (sess?.user) { loadUserData(sess.user.id).finally(() => setLoading(false)); evaluateMfa(); }
       else setLoading(false);
     });
     return () => subscription.unsubscribe();
@@ -130,7 +142,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AuthContext.Provider value={{
       user, session, profile, organization, organizations, roleEntries, roles, loading,
-      authError, isAdmin, isSuperadmin, isViewer, canWrite, switchOrg, signOut, refresh,
+      authError, mfaRequired, isAdmin, isSuperadmin, isViewer, canWrite, switchOrg, signOut, refresh,
     }}>
       {children}
     </AuthContext.Provider>
