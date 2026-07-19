@@ -6,12 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Loader2, ShieldCheck, ShieldOff, Smartphone, LogOut, Copy } from "lucide-react";
+import { Loader2, ShieldCheck, ShieldOff, Smartphone, Copy } from "lucide-react";
 import { toast } from "sonner";
 import {
-  enrollTotp, verifyTotpEnrollment, listTotpFactors, unenrollFactor, signOutAllDevices,
+  enrollTotp, verifyTotpEnrollment, listTotpFactors, unenrollFactor,
   type TotpFactorSummary, type EnrollResult,
 } from "@/lib/mfa";
+import SessionManagement from "@/components/SessionManagement";
 
 export default function SecuritySettings() {
   const [factors, setFactors] = useState<TotpFactorSummary[]>([]);
