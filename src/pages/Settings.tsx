@@ -222,6 +222,10 @@ export default function Settings() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="security" className="mt-4">
+          <SecuritySettings />
+        </TabsContent>
+
         <TabsContent value="account" className="mt-4 space-y-4">
           <Card className="border-border/60 max-w-lg">
             <CardHeader>
