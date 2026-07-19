@@ -39,6 +39,7 @@ interface AuthContextValue {
   roles: Role[];
   loading: boolean;
   authError: string | null;
+  mfaRequired: boolean;
   isAdmin: boolean;
   isSuperadmin: boolean;
   isViewer: boolean;
@@ -59,7 +60,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [roleEntries, setRoleEntries] = useState<RoleEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [mfaRequired, setMfaRequired] = useState(false);
   const loadSeq = useRef(0);
+
+  const evaluateMfa = async () => {
+    try {
+      const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      setMfaRequired(data?.currentLevel === "aal1" && data?.nextLevel === "aal2");
+    } catch { setMfaRequired(false); }
+  };
 
   const loadUserData = async (userId: string, opts?: { retried?: boolean }) => {
     const seq = ++loadSeq.current;
