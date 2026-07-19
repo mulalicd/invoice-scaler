@@ -154,38 +154,7 @@ export default function SecuritySettings() {
         </CardContent>
       </Card>
 
-      <Card className="border-border/60">
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <LogOut className="w-4 h-4" /> Aktivne sesije
-          </CardTitle>
-          <CardDescription>
-            Odjavite račun sa svih uređaja (browsera, telefona, tableta). Ova radnja poništava sve tokene.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" disabled={signOutBusy}>
-                {signOutBusy && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                <LogOut className="w-4 h-4 mr-2" /> Odjavi sa svih uređaja
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Odjaviti sve sesije?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Bit ćete odjavljeni i sa ovog uređaja. Morat ćete se ponovo prijaviti.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Odustani</AlertDialogCancel>
-                <AlertDialogAction onClick={doSignOutAll}>Odjavi sve</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </CardContent>
-      </Card>
+      <SessionManagement />
 
       <Dialog open={!!enrolling} onOpenChange={(o) => { if (!o) cancelEnroll(); }}>
         <DialogContent className="max-w-md">
