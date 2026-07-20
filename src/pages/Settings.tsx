@@ -228,6 +228,12 @@ export default function Settings() {
           <SecuritySettings />
         </TabsContent>
 
+        <TabsContent value="retention" className="mt-4">
+          <RetentionSettings />
+        </TabsContent>
+
+
+
         <TabsContent value="account" className="mt-4 space-y-4">
           <Card className="border-border/60 max-w-lg">
             <CardHeader>
