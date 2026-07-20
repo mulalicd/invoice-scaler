@@ -452,6 +452,50 @@ export type Database = {
           },
         ]
       }
+      retention_policies: {
+        Row: {
+          audit_log_days: number
+          created_at: string
+          draft_invoice_days: number
+          error_log_days: number
+          id: string
+          invoice_retention_years: number
+          organization_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          audit_log_days?: number
+          created_at?: string
+          draft_invoice_days?: number
+          error_log_days?: number
+          id?: string
+          invoice_retention_years?: number
+          organization_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          audit_log_days?: number
+          created_at?: string
+          draft_invoice_days?: number
+          error_log_days?: number
+          id?: string
+          invoice_retention_years?: number
+          organization_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retention_policies_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -585,6 +629,7 @@ export type Database = {
           invoice_year: number
         }[]
       }
+      run_retention_cleanup: { Args: { _org_id: string }; Returns: Json }
       switch_active_organization: {
         Args: { _org_id: string }
         Returns: undefined

@@ -8,10 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Building2, Users as UsersIcon, ShieldCheck, KeyRound, Lock } from "lucide-react";
+import { Loader2, Building2, Users as UsersIcon, ShieldCheck, KeyRound, Lock, Archive } from "lucide-react";
 import { toast } from "sonner";
 import { validatePassword, PASSWORD_RULES_TEXT } from "@/lib/passwordPolicy";
 import SecuritySettings from "@/components/SecuritySettings";
+import RetentionSettings from "@/components/RetentionSettings";
 import type { OrganizationRow, ProfileRow } from "@/lib/domain";
 
 interface MemberRow extends Pick<ProfileRow, "id" | "email" | "first_name" | "last_name" | "organization_id"> {
@@ -108,6 +109,7 @@ export default function Settings() {
           <TabsTrigger value="org"><Building2 className="w-4 h-4 mr-2" />Organizacija</TabsTrigger>
           <TabsTrigger value="users"><UsersIcon className="w-4 h-4 mr-2" />Korisnici</TabsTrigger>
           <TabsTrigger value="security"><Lock className="w-4 h-4 mr-2" />Sigurnost</TabsTrigger>
+          <TabsTrigger value="retention"><Archive className="w-4 h-4 mr-2" />Zadržavanje</TabsTrigger>
           <TabsTrigger value="account"><KeyRound className="w-4 h-4 mr-2" />Moj račun</TabsTrigger>
         </TabsList>
 
@@ -225,6 +227,12 @@ export default function Settings() {
         <TabsContent value="security" className="mt-4">
           <SecuritySettings />
         </TabsContent>
+
+        <TabsContent value="retention" className="mt-4">
+          <RetentionSettings />
+        </TabsContent>
+
+
 
         <TabsContent value="account" className="mt-4 space-y-4">
           <Card className="border-border/60 max-w-lg">
