@@ -106,9 +106,16 @@ export default function Auth() {
           </form>
         </Card>
 
-        <p className="text-center text-xs text-white/50">
-          © {new Date().getFullYear()} IDSS · IMH · Sistem fakturisanja
-        </p>
+        <div className="text-center text-xs text-white/50 space-y-2">
+          <div className="flex items-center justify-center gap-3">
+            <Link to="/legal/privacy" className="hover:text-white/80">Privatnost</Link>
+            <span>·</span>
+            <Link to="/legal/terms" className="hover:text-white/80">Uvjeti</Link>
+            <span>·</span>
+            <Link to="/legal/cookies" className="hover:text-white/80">Kolačići</Link>
+          </div>
+          <p>© {new Date().getFullYear()} IDSS · IMH · Sistem fakturisanja</p>
+        </div>
       </div>
     </div>
   );
