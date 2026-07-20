@@ -34,8 +34,7 @@ export default function Cookies() {
           </tr>
           <tr>
             <td><code>active_organization_id</code></td>
-            <td>localStorage</td
-            ></td>
+            <td>localStorage</td>
             <td>Zapamćena aktivna organizacija korisnika.</td>
             <td>Trajno dok se ne obriše</td>
           </tr>
